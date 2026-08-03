@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KINGDOM STORES | Christian Streetwear</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700;800&display=swap');
+
+  :root{
+    --black:#0a0a0a;
+    --white:#ffffff;
+    --red:#c8102e;
+    --gray:#f4f4f4;
+    --line:#e5e5e5;
+    --text-gray:#666666;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    color:var(--black);
+    background:var(--white);
+  }
+  h1,h2,h3,.display{
+    font-family:'Bebas Neue', sans-serif;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+  }
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+  .container{max-width:1280px; margin:0 auto; padding:0 24px;}
+
+  /* Announcement bar */
+  .announce{
+    background:var(--black);
+    color:var(--white);
+    text-align:center;
+    font-size:13px;
+    font-weight:300;
+    letter-spacing:1px;
+    padding:10px 16px;
+    text-transform:uppercase;
+  }
+  .announce span.accent{color:var(--red);}
+
+  .trust-bar{
+    background:var(--red);
+    color:var(--white);
+    font-size:12px;
+    font-weight:300;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    display:flex;
+    justify-content:center;
+    gap:48px;
+    padding:9px 16px;
+    flex-wrap:wrap;
+  }
+
+  /* Header */
+  header{
+    border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:var(--white); z-index:50;
+  }
+  .nav-wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 24px;
+  }
+  .logo{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:24px;
+    line-height:0.95;
+    text-transform:uppercase;
+  }
+  .logo .red{color:var(--red);}
+  nav ul{
+    display:flex; gap:32px; list-style:none;
+    font-size:13px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;
+  }
+  nav ul li a:hover{color:var(--red);}
+  .icons{display:flex; gap:20px; align-items:center;}
+  .icons a{font-size:18px;}
+  .cart-badge{
+    background:var(--red); color:var(--white); font-size:10px; font-weight:800;
+    border-radius:50%; width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center;
+    position:relative; top:-8px; left:-6px;
+  }
+  .promo-strip{
+    background:var(--black); color:var(--white); text-align:center;
+    font-size:12px; font-weight:300; letter-spacing:1px; padding:8px; text-transform:uppercase;
+  }
+  .promo-strip .red{color:var(--red);}
+
+  /* Hero */
+  .hero{
+    display:grid; grid-template-columns:1fr 1fr;
+    background:var(--gray);
+    align-items:center;
+    min-height:560px;
+  }
+  .hero-copy{padding:60px;}
+  .hero-copy .kicker{
+    color:var(--red); font-weight:800; font-size:13px; letter-spacing:2px; margin-bottom:14px; display:block;
+  }
+  .hero-copy h1{
+    font-size:64px; line-height:0.95; margin-bottom:22px;
+  }
+  .hero-copy h1 .red{color:var(--red);}
+  .hero-copy p{
+    font-size:16px; color:#333; margin-bottom:28px; max-width:460px; line-height:1.5;
+  }
+  .btn{
+    display:inline-block; background:var(--black); color:var(--white);
+    padding:16px 32px; font-weight:800; font-size:13px; letter-spacing:1.5px;
+    text-transform:uppercase; border:2px solid var(--black); cursor:pointer;
+    transition:0.2s;
+  }
+  .btn:hover{background:var(--white); color:var(--black);}
+  .btn-red{background:var(--red); border-color:var(--red); color:var(--white);}
+  .btn-red:hover{background:var(--white); color:var(--red);}
+  .btn-outline{background:transparent; color:var(--black);}
+  .btn-outline:hover{background:var(--black); color:var(--white);}
+
+  .hero-visual{
+    height:100%; min-height:560px;
+    background:
+      repeating-linear-gradient(45deg, var(--black) 0 2px, transparent 2px 40px),
+      linear-gradient(135deg, #1a1a1a, var(--black));
+    display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
+  }
+  .hero-visual .word{
+    font-family:'Bebas Neue', sans-serif; color:var(--white); font-size:90px; text-align:center; line-height:0.9;
+    text-transform:uppercase;
+  }
+  .hero-visual .word .red{color:var(--red);}
+  .hero-visual::after{
+    content:"CUSTOM";
+    position:absolute; bottom:24px; right:24px;
+    font-family:'Bebas Neue'; color:var(--red); font-size:14px; letter-spacing:3px;
+    border:2px solid var(--red); padding:6px 14px;
+  }
+
+  /* Section headers */
+  .section{padding:64px 0;}
+  .section-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom:28px; border-bottom:3px solid var(--black); padding-bottom:14px;
+  }
+  .section-head h2{font-size:32px;}
+  .section-head .view-all{font-weight:800; font-size:12px; letter-spacing:1px; text-transform:uppercase; border-bottom:2px solid var(--red); padding-bottom:2px;}
+  .section-head .view-all:hover{color:var(--red);}
+  .section.dark{background:var(--black); color:var(--white);}
+  .section.dark .section-head{border-color:var(--white);}
+
+  /* Product grid */
+  .grid{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:24px;
+  }
+  .card{position:relative;}
+  .card .thumb{
+    aspect-ratio:4/5; background:var(--gray);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    position:relative; overflow:hidden; margin-bottom:12px;
+    border:1px solid var(--line);
+  }
+  .thumb .tee-graphic{
+    font-family:'Bebas Neue'; text-transform:uppercase; line-height:1;
+  }
+  .thumb .tee-graphic small{display:block; font-size:11px; letter-spacing:2px; color:var(--red); font-family:'Inter'; font-weight:800; margin-top:10px;}
+  .badge{
+    position:absolute; top:10px; left:10px;
+    background:var(--red); color:var(--white); font-size:10px; font-weight:800;
+    padding:5px 9px; letter-spacing:0.5px; text-transform:uppercase;
+  }
+  .badge.black{background:var(--black);}
+  .card h3{
+    font-family:'Inter'; font-weight:300; font-size:13px; text-transform:uppercase;
+    line-height:1.3; margin-bottom:6px; letter-spacing:0.5px; color:var(--text-gray);
+  }
+  .price{font-size:14px; font-weight:300; letter-spacing:0.3px;}
+  .price .was{text-decoration:line-through; color:#999; font-weight:300; margin-right:8px;}
+  .price .now{color:var(--red);}
+  .swatches{display:flex; gap:6px; margin-top:8px;}
+  .swatch{width:14px; height:14px; border-radius:50%; border:1px solid #ccc;}
+
+  /* Bg variants for thumb graphic */
+  .thumb.bg1{background:linear-gradient(135deg,#111,#333);}
+  .thumb.bg2{background:linear-gradient(135deg,var(--red),#7a0a1c);}
+  .thumb.bg3{background:linear-gradient(135deg,#eaeaea,#cfcfcf);}
+  .thumb.bg4{background:linear-gradient(135deg,#0a0a0a,var(--red));}
+  .bg1 .tee-graphic, .bg2 .tee-graphic, .bg4 .tee-graphic{color:var(--white);}
+  .bg3 .tee-graphic{color:var(--black);}
+
+  /* Real-photo apparel catalog, grouped by category */
+  .apparel-group{margin-bottom:48px;}
+  .apparel-group:last-child{margin-bottom:0;}
+  .apparel-group > h3{
+    font-size:14px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+    margin-bottom:18px; padding-bottom:8px; border-bottom:2px solid var(--black); font-family:'Inter';
+    color:var(--black);
+  }
+  .apparel-card{position:relative;}
+  .apparel-card .thumb{
+    aspect-ratio:4/5; background:var(--gray); overflow:hidden; margin-bottom:12px; border:1px solid var(--line);
+    padding:0;
+  }
+  .apparel-card .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .apparel-delete{
+    display:none; position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:50%;
+    background:var(--red); color:var(--white); border:2px solid var(--white); cursor:pointer; font-size:11px;
+    align-items:center; justify-content:center; z-index:2;
+  }
+  #apparelGroups.admin-mode .apparel-delete{display:flex;}
+  .apparel-delete:hover{background:var(--white); color:var(--red);}
+
+  /* Inline price editing (admin only) */
+  .price-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .apparel-card .price-row{margin-bottom:10px;}
+  .price-edit-btn{
+    background:transparent; border:1px solid #999; color:#999; width:20px; height:20px;
+    border-radius:50%; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center;
+    padding:0; line-height:1;
+  }
+  .price-edit-btn:hover{border-color:var(--red); color:var(--red);}
+  .price-input{
+    width:80px; padding:4px 6px; font-size:13px; border:1px solid var(--red); font-family:'Inter';
+  }
+  .price-save-btn, .price-cancel-btn{
+    background:transparent; border:1px solid #999; width:22px; height:22px; border-radius:50%;
+    cursor:pointer; font-size:11px; display:inline-flex; align-items:center; justify-content:center; padding:0;
+  }
+  .price-save-btn{border-color:var(--red); color:var(--red);}
+  .price-save-btn:hover{background:var(--red); color:var(--white);}
+  .price-cancel-btn{color:#999;}
+  .price-cancel-btn:hover{border-color:#666; color:#333;}
+
+  /* Custom apparel banner */
+  .custom-banner{
+    background:var(--red); color:var(--white);
+    display:grid; grid-template-columns:1fr 1fr; align-items:center;
+    min-height:380px;
+  }
+  .custom-banner .copy{padding:60px;}
+  .custom-banner h2{font-size:44px; margin-bottom:16px; line-height:1;}
+  .custom-banner p{margin-bottom:26px; max-width:420px; line-height:1.5;}
+  .custom-visual{
+    height:100%; min-height:380px; background:var(--black);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Bebas Neue'; color:var(--white); font-size:20px; letter-spacing:2px; text-align:center;
+    padding:24px;
+  }
+
+  /* Verse strip */
+  .verse-strip{
+    text-align:center; padding:70px 24px; background:var(--white);
+  }
+  .verse-strip p.verse{
+    font-family:'Bebas Neue'; font-size:30px; max-width:820px; margin:0 auto 16px; line-height:1.25; text-transform:none;
+  }
+  .verse-strip p.verse .red{color:var(--red);}
+  .verse-strip .ref{font-weight:800; letter-spacing:2px; font-size:12px; color:#666; text-transform:uppercase;}
+
+  /* Music & Video section */
+  .music-section{background:var(--black); color:var(--white);}
+  .music-layout{display:grid; grid-template-columns:1.1fr 0.9fr; gap:40px; align-items:start;}
+
+  .player-panel{
+    background:#111; border:1px solid #262626;
+  }
+  .player-screen{
+    position:relative; aspect-ratio:16/9; overflow:hidden;
+    background:linear-gradient(135deg,#1a0508,#0a0a0a 55%,#2a0812);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .visualizer{
+    position:relative; width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .embed-host{display:none; width:100%; height:100%; background:#000;}
+  #mainVideo{display:none; width:100%; height:100%; object-fit:contain; background:#000;}
+  .embed-host iframe, .embed-host blockquote{width:100%; height:100%; border:0; display:block; margin:0;}
+  .player-screen .screen-title{
+    font-family:'Bebas Neue'; color:var(--white); font-size:clamp(22px,4vw,42px); text-transform:uppercase;
+    text-align:center; padding:0 20px; letter-spacing:1px; z-index:1; text-shadow:0 4px 20px rgba(0,0,0,0.6);
+  }
+  .player-screen .screen-title span{color:var(--red);}
+  .eq{
+    position:absolute; bottom:0; left:0; right:0; display:flex; align-items:flex-end; justify-content:center;
+    gap:5px; height:70px; padding-bottom:0; opacity:0.55;
+  }
+  .eq i{
+    width:6px; background:var(--red); border-radius:2px 2px 0 0;
+    animation:eqbar 1.1s ease-in-out infinite;
+  }
+  .eq.paused i{animation-play-state:paused; height:6px !important;}
+  @keyframes eqbar{0%,100%{height:8px;}50%{height:60px;}}
+  .player-live{
+    position:absolute; top:14px; left:14px; z-index:2;
+    background:var(--red); color:var(--white); font-size:11px; font-weight:800;
+    letter-spacing:1.5px; padding:5px 10px; display:flex; align-items:center; gap:6px;
+  }
+  .player-live .dot{width:7px; height:7px; border-radius:50%; background:var(--white); animation:pulse 1.4s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+  .player-progress{height:3px; background:#262626;}
+  .player-progress .bar{height:100%; width:0%; background:var(--red); transition:width 0.25s linear;}
+  .player-nowplaying{
+    padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    border-bottom:1px solid #262626;
+  }
+  .player-nowplaying .track-name{font-family:'Bebas Neue'; font-size:18px; text-transform:uppercase;}
+  .player-nowplaying .track-sub{font-size:11px; color:#999; letter-spacing:1px; text-transform:uppercase; margin-top:2px;}
+  .player-controls{display:flex; gap:10px;}
+  .player-controls button{
+    background:transparent; border:2px solid #444; color:var(--white); width:38px; height:38px;
+    border-radius:50%; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;
+    transition:0.2s;
+  }
+  .player-controls button:hover{border-color:var(--red); color:var(--red);}
+  .player-controls button.primary{background:var(--red); border-color:var(--red); color:var(--white);}
+  .player-controls button.primary:hover{background:var(--white); color:var(--red);}
+  .player-controls.embed-active button:not(#prevBtn):not(#nextBtn){opacity:0.3; cursor:not-allowed;}
+  #volumeSlider{width:70px; accent-color:var(--red); cursor:pointer;}
+  .player-controls.embed-active #volumeSlider{opacity:0.3; pointer-events:none;}
+  .link-add{display:flex; gap:10px; padding:14px 20px; border-bottom:1px solid #262626;}
+  .link-add input{
+    flex:1; background:#0a0a0a; border:1px solid #333; color:var(--white);
+    padding:10px 12px; font-size:12px; border-radius:2px; font-family:'Inter';
+  }
+  .link-add input::placeholder{color:#666;}
+  .link-add .btn{padding:10px 18px; font-size:11px;}
+  .upload-add{
+    display:none; flex-direction:column; gap:10px; padding:14px 20px; border-bottom:1px solid #262626;
+  }
+  .upload-add.show{display:flex;}
+  .upload-add input[type="text"]{
+    background:#0a0a0a; border:1px solid #333; color:var(--white);
+    padding:10px 12px; font-size:12px; border-radius:2px; font-family:'Inter';
+  }
+  .upload-add input[type="text"]::placeholder{color:#666;}
+  .upload-file-label{
+    display:flex; align-items:center; gap:10px; background:#0a0a0a; border:1px dashed #444;
+    padding:10px 12px; font-size:12px; color:#999; border-radius:2px; cursor:pointer;
+  }
+  .upload-file-label:hover{border-color:var(--red); color:var(--white);}
+  .upload-file-label input[type="file"]{display:none;}
+  .upload-add .btn{width:100%; padding:12px; font-size:11px;}
+  .player-list{list-style:none; max-height:230px; overflow-y:auto;}
+  .player-list .platform{
+    font-size:9px; font-weight:800; letter-spacing:1px; color:var(--red);
+    border:1px solid var(--red); padding:1px 5px; border-radius:2px; margin-right:6px;
+  }
+  .player-list li{
+    display:flex; align-items:center; gap:12px; padding:12px 20px; cursor:pointer;
+    border-bottom:1px solid #1c1c1c; font-size:13px; transition:0.15s;
+  }
+  .player-list li:hover{background:#1a1a1a;}
+  .player-list li.active{background:#1a1a1a; border-left:3px solid var(--red);}
+  .player-list .idx{color:#666; font-weight:800; width:18px;}
+  .player-list .meta{flex:1;}
+  .player-list .meta .t{font-weight:700; text-transform:uppercase;}
+  .player-list .meta .a{color:#888; font-size:11px; text-transform:uppercase; letter-spacing:0.5px;}
+  .player-list .len{color:#666; font-size:11px;}
+
+  .admin-toggle{
+    background:transparent; border:1px solid #444; color:#999; font-size:11px; font-weight:800;
+    letter-spacing:1px; padding:7px 12px; cursor:pointer; text-transform:uppercase; border-radius:2px;
+    transition:0.2s;
+  }
+  .admin-toggle:hover{border-color:var(--red); color:var(--red);}
+  .admin-toggle.active{background:var(--red); border-color:var(--red); color:var(--white);}
+  .section.dark .admin-toggle{color:#ccc; border-color:#444;}
+
+  .admin-login-overlay{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:999;
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .admin-login-overlay.open{display:flex;}
+  .admin-login-box{
+    background:#111; border:1px solid #333; padding:32px; width:100%; max-width:340px;
+  }
+  .admin-login-box h3{font-family:'Bebas Neue'; color:var(--white); font-size:26px; margin-bottom:6px;}
+  .admin-login-box p{color:#999; font-size:12px; margin-bottom:20px; line-height:1.5;}
+  .admin-login-box input{
+    width:100%; background:#0a0a0a; border:1px solid #333; color:var(--white);
+    padding:12px; font-size:13px; margin-bottom:12px; border-radius:2px; font-family:'Inter';
+  }
+  .admin-login-box input::placeholder{color:#666;}
+  .login-error{color:#ff4d5e; font-size:12px; min-height:16px; margin-bottom:6px;}
+  .admin-login-actions{display:flex; gap:10px; margin-top:8px;}
+  .admin-login-actions .btn{flex:1; padding:12px; font-size:11px;}
+
+  .shop-audio-grid{display:grid; grid-template-columns:1fr; gap:16px;}
+  .track-card{
+    position:relative;
+    background:#111; border:1px solid #262626; padding:16px; display:flex; align-items:center; gap:16px;
+  }
+  .track-delete{
+    display:none; position:absolute; top:-9px; right:-9px; width:26px; height:26px; border-radius:50%;
+    background:var(--red); color:var(--white); border:2px solid #111; cursor:pointer; font-size:11px;
+    align-items:center; justify-content:center; z-index:2;
+  }
+  .track-delete:hover{background:var(--white); color:var(--red);}
+  .music-section.admin-mode .track-delete{display:flex;}
+  .player-list li{position:relative;}
+  .player-list .del-track{
+    display:none; background:transparent; border:1px solid #444; color:#999; width:22px; height:22px;
+    min-width:22px; border-radius:50%; cursor:pointer; font-size:10px; align-items:center; justify-content:center;
+    margin-left:8px;
+  }
+  .player-list .del-track:hover{border-color:var(--red); color:var(--red); background:rgba(200,16,46,0.1);}
+  .music-section.admin-mode .player-list .del-track{display:flex;}
+  .track-play{
+    width:52px; height:52px; min-width:52px; border-radius:50%; background:var(--red); color:var(--white);
+    display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; border:none;
+    transition:0.2s;
+  }
+  .track-play:hover{background:var(--white); color:var(--red);}
+  .track-info{flex:1;}
+  .track-info .name{font-family:'Bebas Neue'; font-size:16px; text-transform:uppercase; letter-spacing:0.3px;}
+  .track-info .type{font-size:11px; color:#999; letter-spacing:1px; text-transform:uppercase; margin-top:2px;}
+  .track-buy{text-align:right;}
+  .track-buy .price{display:block; margin-bottom:8px; color:var(--white);}
+  .track-buy .price .now{color:#ff4d5e;}
+  .track-buy a.btn{padding:10px 18px; font-size:11px;}
+
+  @media (max-width:900px){
+    .music-layout{grid-template-columns:1fr;}
+  }
+
+  /* Newsletter signup */
+  .signup-band{background:var(--red); color:var(--white); padding:56px 0 28px;}
+  .signup-inner{
+    display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;
+  }
+  .signup-band h2{font-size:34px; margin-bottom:8px;}
+  .signup-band p{max-width:420px; line-height:1.5; opacity:0.9; font-size:14px;}
+  .signup-form{display:flex; gap:10px; flex-wrap:wrap;}
+  .signup-form input{
+    background:var(--white); border:2px solid var(--black); color:var(--black);
+    padding:14px 16px; font-size:13px; min-width:240px; font-family:'Inter';
+  }
+  .signup-form .btn{padding:14px 24px; background:var(--black); border-color:var(--black);}
+  .signup-form .btn:hover{background:var(--white); color:var(--black);}
+  .signup-msg{text-align:center; font-size:12px; font-weight:700; letter-spacing:0.5px; padding-top:14px; min-height:16px;}
+
+  /* Footer */
+  footer{background:var(--black); color:var(--white); padding:64px 0 24px;}
+  .footer-grid{display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; margin-bottom:48px;}
+  .footer-grid h4{font-size:13px; letter-spacing:1px; margin-bottom:16px; text-transform:uppercase; font-family:'Inter'; font-weight:800;}
+  .footer-grid ul{list-style:none; display:flex; flex-direction:column; gap:10px; font-size:13px; color:#bbb;}
+  .footer-grid ul a:hover{color:var(--red);}
+  .footer-logo{font-family:'Bebas Neue'; font-size:26px; margin-bottom:14px;}
+  .footer-logo .red{color:var(--red);}
+  footer p.tag{color:#999; font-size:13px; max-width:320px; line-height:1.5;}
+  .footer-bottom{
+    border-top:1px solid #262626; padding-top:20px; display:flex; justify-content:space-between;
+    font-size:12px; color:#777; flex-wrap:wrap; gap:10px;
+  }
+
+  @media (max-width:900px){
+    .grid{grid-template-columns:repeat(2,1fr);}
+    .hero{grid-template-columns:1fr;}
+    .hero-visual{min-height:320px; order:-1;}
+    .custom-banner{grid-template-columns:1fr;}
+    .footer-grid{grid-template-columns:1fr 1fr;}
+    nav ul{display:none;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="announce">2,000,000+ ITEMS SHIPPED <span class="accent">&middot;</span> BUILT TO SPREAD THE WORD <span class="accent">&middot;</span> ONE APPAREL DROP AT A TIME</div>
+  <div class="trust-bar">
+    <span>✓ TRUSTED BY 250,000+</span>
+    <span>🚚 FREE U.S. SHIPPING OVER $75</span>
+    <span>✝ SCRIPTURE-INSPIRED DESIGNS</span>
+    <span>🎨 CUSTOMIZE YOUR OWN</span>
+  </div>
+
+  <header>
+    <div class="nav-wrap">
+      <a href="#" class="logo">KINGDOM<br><span class="red">STORES.</span></a>
+      <nav>
+        <ul>
+          <li><a href="#shop">Shop</a></li>
+          <li><a href="#custom">Customize</a></li>
+          <li><a href="#music">Music</a></li>
+          <li><a href="#about">Our Mission</a></li>
+        </ul>
+      </nav>
+      <div class="icons">
+        <a href="#" title="Search">🔍</a>
+        <a href="#" title="Cart">🛍<span class="cart-badge">0</span></a>
+      </div>
+    </div>
+    <div class="promo-strip">🔥 <span class="red">BUY ANY TEE, GET 20% OFF A CUSTOM DESIGN</span> — CODE: FAITH20</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="kicker">CHRISTIAN STREETWEAR</span>
+      <h1>WEAR YOUR <span class="red">FAITH</span> OUT LOUD.</h1>
+      <p>Motivational, scripture-driven apparel built for the streets. Bold graphics, real verses, and custom pieces made to start a conversation about who you belong to.</p>
+      <div style="display:flex; gap:14px; flex-wrap:wrap;">
+        <a href="#shop" class="btn btn-red">SHOP THE DROP</a>
+        <a href="#custom" class="btn btn-outline">CUSTOMIZE YOURS</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="word">KINGDOM<br><span class="red">STORES.</span></div>
+    </div>
+  </section>
+
+  <section class="verse-strip">
+    <p class="verse">"BE STRONG AND COURAGEOUS. DO NOT BE <span class="red">AFRAID</span>." <br>JOSHUA 1:9</p>
+    <span class="ref">EVERY PIECE STARTS WITH A WORD</span>
+  </section>
+
+  <section class="section" id="shop">
+    <div class="container">
+      <div class="section-head">
+        <h2>Shop Apparel</h2>
+        <button id="apparelAdminToggle" class="admin-toggle" type="button">🔒 ADMIN MODE</button>
+      </div>
+      <div id="apparelGroups">
+        <p style="color:#666; font-size:13px;">Loading apparel…</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="custom-banner" id="custom">
+    <div class="copy">
+      <h2>MAKE IT YOURS.</h2>
+      <p>Add your name, your verse, your testimony. Custom scripture apparel built on the same heavyweight blanks as the rest of the KINGDOM STORES line — designed with you, printed for you.</p>
+      <a href="#" class="btn" style="background:var(--black); border-color:var(--black); color:var(--white);">START CUSTOMIZING</a>
+    </div>
+    <div class="custom-visual">
+      [ YOUR NAME ]<br>+<br>[ YOUR VERSE ]<br>=<br><span style="color:#c8102e">ONE OF ONE</span>
+    </div>
+  </section>
+
+
+  <section class="section music-section" id="music">
+    <div class="container">
+      <div class="section-head">
+        <h2>Kingdom Sound — Music &amp; Videos</h2>
+        <div style="display:flex; align-items:center; gap:18px;">
+          <button id="adminToggle" class="admin-toggle" type="button">🔒 ADMIN MODE</button>
+          <a href="#" class="view-all">View All →</a>
+        </div>
+      </div>
+
+      <div class="music-layout">
+
+        <div class="player-panel">
+          <div class="player-screen">
+            <span class="player-live"><span class="dot"></span> 24/7 MUSIC VIDEO CHANNEL</span>
+            <div class="visualizer" id="visualizer">
+              <div class="screen-title" id="screenTitle">Loading…</div>
+              <div class="eq" id="eq">
+                <i style="animation-delay:0s"></i><i style="animation-delay:0.1s"></i><i style="animation-delay:0.2s"></i>
+                <i style="animation-delay:0.3s"></i><i style="animation-delay:0.15s"></i><i style="animation-delay:0.25s"></i>
+                <i style="animation-delay:0.05s"></i><i style="animation-delay:0.35s"></i><i style="animation-delay:0.2s"></i>
+              </div>
+            </div>
+            <div class="embed-host" id="embedHost"></div>
+            <video id="mainVideo" playsinline></video>
+          </div>
+          <div class="player-progress"><div class="bar" id="progressBar"></div></div>
+          <div class="player-nowplaying">
+            <div>
+              <div class="track-name" id="nowTitle">Loading…</div>
+              <div class="track-sub" id="nowArtist">KINGDOM STORES</div>
+            </div>
+            <div class="player-controls" id="playerControls">
+              <button id="prevBtn" title="Previous">⏮</button>
+              <button id="playBtn" class="primary" title="Play/Pause">⏸</button>
+              <button id="nextBtn" title="Next">⏭</button>
+              <button id="muteBtn" title="Mute/Unmute">🔇</button>
+              <input type="range" id="volumeSlider" min="0" max="100" value="100" title="Volume">
+            </div>
+          </div>
+          <div class="link-add">
+            <input type="text" id="linkInput" placeholder="Paste a YouTube, TikTok, or Apple Music link…">
+            <button id="linkAddBtn" class="btn btn-red">ADD</button>
+          </div>
+          <div class="upload-add" id="uploadAdd">
+            <input type="text" id="uploadTitle" placeholder="Title (optional)">
+            <input type="text" id="uploadArtist" placeholder="Artist (optional)">
+            <label class="upload-file-label">
+              <input type="file" id="uploadFile" accept="video/mp4,video/quicktime,video/x-m4v,video/webm">
+              <span id="uploadFileName">Choose a video file…</span>
+            </label>
+            <button id="uploadBtn" class="btn btn-red" type="button">UPLOAD</button>
+          </div>
+          <ul class="player-list" id="playerList"></ul>
+          <audio id="mainAudio" preload="auto"></audio>
+        </div>
+
+        <div class="shop-audio-grid" id="shopAudioGrid">
+          <p style="color:#666; font-size:13px;">Loading products…</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="admin-login-overlay" id="adminOverlay">
+    <div class="admin-login-box">
+      <h3>Admin Login</h3>
+      <p>Sign in to manage Kingdom Sound tracks &amp; product listings.</p>
+      <input type="text" id="loginUser" placeholder="Username" autocomplete="username">
+      <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password">
+      <div id="loginError" class="login-error"></div>
+      <div class="admin-login-actions">
+        <button id="loginCancelBtn" class="btn btn-outline" type="button" style="color:#fff; border-color:#444;">CANCEL</button>
+        <button id="loginSubmitBtn" class="btn btn-red" type="button">LOG IN</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="verse-strip" id="about">
+    <p class="verse">WELCOME TO THE MOVEMENT. EVERY DESIGN IS MADE TO <span class="red">START A CONVERSATION</span> ABOUT FAITH.</p>
+    <span class="ref">KINGDOM STORES — APPAREL WITH A PURPOSE</span>
+  </section>
+
+  <section class="signup-band" id="join">
+    <div class="container signup-inner">
+      <div>
+        <h2>Join The Movement</h2>
+        <p>New drops, new tracks, and early access — straight to your inbox. No spam, unsubscribe anytime.</p>
+      </div>
+      <form id="signupForm" class="signup-form" autocomplete="off">
+        <input type="email" id="signupEmail" placeholder="your@email.com" required>
+        <button type="submit" class="btn btn-red">SUBSCRIBE</button>
+      </form>
+    </div>
+    <div id="signupMsg" class="signup-msg"></div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo">KINGDOM<span class="red">STORES.</span></div>
+          <p class="tag">Christian streetwear built on motivation and scripture. Trendy apparel, made to help you wear your faith out loud — customized however you need it.</p>
+        </div>
+        <div>
+          <h4>Shop</h4>
+          <ul>
+            <li><a href="#">New Arrivals</a></li>
+            <li><a href="#">Scripture Tees</a></li>
+            <li><a href="#">Hoodies</a></li>
+            <li><a href="#">Customize Yours</a></li>
+            <li><a href="#">Clearance Sale</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Info</h4>
+          <ul>
+            <li><a href="#">Our Mission</a></li>
+            <li><a href="#">Shipping</a></li>
+            <li><a href="#">Returns</a></li>
+            <li><a href="#">Wholesale</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Connect</h4>
+          <ul>
+            <li><a href="#">Instagram</a></li>
+            <li><a href="#">TikTok</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Join Ambassador Team</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 KINGDOM STORES. All rights reserved.</span>
+        <span>Design mockup for demonstration purposes.</span>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  // Tracks and products are loaded live from the Flask backend (backend/app.py).
+  // Deleting a track/product calls the real DELETE API — it's gone for every
+  // visitor, not just hidden in this browser.
+  let playlist = [];
+  let isAdmin = false;
+
+  let current = 0;
+  let elapsed = 0;
+  let playing = true;
+  let timer = null;
+
+  const audio       = document.getElementById('mainAudio');
+  const video       = document.getElementById('mainVideo');
+  const visualizer  = document.getElementById('visualizer');
+  const embedHost   = document.getElementById('embedHost');
+  const screenTitle = document.getElementById('screenTitle');
+  const eq       = document.getElementById('eq');
+  const bar      = document.getElementById('progressBar');
+  const title    = document.getElementById('nowTitle');
+  const artist   = document.getElementById('nowArtist');
+  const listEl   = document.getElementById('playerList');
+  const playBtn  = document.getElementById('playBtn');
+  const muteBtn  = document.getElementById('muteBtn');
+  const volumeSlider = document.getElementById('volumeSlider');
+  const controlsRow = document.getElementById('playerControls');
+  const linkInput  = document.getElementById('linkInput');
+  const linkAddBtn = document.getElementById('linkAddBtn');
+  const uploadAdd    = document.getElementById('uploadAdd');
+  const uploadFile   = document.getElementById('uploadFile');
+  const uploadFileName = document.getElementById('uploadFileName');
+  const uploadTitle  = document.getElementById('uploadTitle');
+  const uploadArtist = document.getElementById('uploadArtist');
+  const uploadBtn    = document.getElementById('uploadBtn');
+
+  const PLATFORM_LABEL = { youtube: 'YT', tiktok: 'TT', apple: 'AM' };
+
+  function isEmbedTrack(t){ return t.type === 'youtube' || t.type === 'tiktok' || t.type === 'apple'; }
+  function isLocalVideo(t){ return t.type === 'video'; }
+
+  function renderList(){
+    if (playlist.length === 0) {
+      listEl.innerHTML = `<li style="cursor:default; color:#666; justify-content:center;">No tracks in the playlist.</li>`;
+      return;
+    }
+    listEl.innerHTML = playlist.map((t,i) => `
+      <li class="${i===current?'active':''}" data-idx="${i}">
+        <span class="idx">${String(i+1).padStart(2,'0')}</span>
+        <span class="meta">${PLATFORM_LABEL[t.type] ? `<span class="platform">${PLATFORM_LABEL[t.type]}</span>` : ''}<span class="t">${t.title}</span><br><span class="a">${t.artist}</span></span>
+        <span class="len">${t.len}</span>
+        ${isAdmin ? `<button class="del-track" type="button" data-idx="${i}" title="Delete track">✕</button>` : ''}
+      </li>`).join('');
+    listEl.querySelectorAll('li').forEach(li => {
+      li.addEventListener('click', () => loadTrack(parseInt(li.dataset.idx)));
+    });
+    listEl.querySelectorAll('.del-track').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        deleteTrack(parseInt(btn.dataset.idx));
+      });
+    });
+  }
+
+  async function deleteTrack(i){
+    const t = playlist[i];
+    if (!confirm(`Delete "${t.title}" from the playlist?`)) return;
+    const res = await fetch(`/api/tracks/${encodeURIComponent(t.id)}`, { method: 'DELETE' });
+    if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+    if (!res.ok) { alert('Could not delete that track.'); return; }
+
+    playlist.splice(i, 1);
+    if (playlist.length === 0) {
+      audio.pause();
+      video.pause(); video.removeAttribute('src'); video.style.display = 'none';
+      clearInterval(timer);
+      embedHost.innerHTML = ''; embedHost.style.display = 'none';
+      visualizer.style.display = 'flex';
+      screenTitle.textContent = 'No tracks available';
+      title.textContent = '—'; artist.textContent = '—';
+      bar.style.width = '0%';
+      renderList();
+      return;
+    }
+    if (i < current) current -= 1;
+    if (i === current) { loadTrack(current); return; }
+    renderList();
+  }
+
+  function embedMarkup(t){
+    if (t.type === 'youtube') {
+      return `<iframe src="https://www.youtube.com/embed/${t.embed_id}?autoplay=1&loop=1&playlist=${t.embed_id}&rel=0" title="${t.title}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+    }
+    if (t.type === 'tiktok') {
+      return `<iframe src="https://www.tiktok.com/player/v1/${t.embed_id}?autoplay=1&loop=1&controls=1" title="${t.title}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    }
+    if (t.type === 'apple') {
+      return `<iframe src="${t.embed_url}" title="${t.title}" allow="autoplay *; encrypted-media *;"></iframe>`;
+    }
+    return '';
+  }
+
+  function loadTrack(i){
+    audio.pause();
+    video.pause(); video.removeAttribute('src'); video.load();
+    clearInterval(timer);
+    embedHost.innerHTML = '';
+    current = (i + playlist.length) % playlist.length;
+    const t = playlist[current];
+    elapsed = 0;
+    bar.style.width = '0%';
+    title.textContent = t.title;
+    artist.textContent = t.artist;
+    renderList();
+
+    const embed = isEmbedTrack(t);
+    const localVideo = isLocalVideo(t);
+    visualizer.style.display = (embed || localVideo) ? 'none' : 'flex';
+    embedHost.style.display = embed ? 'block' : 'none';
+    video.style.display = localVideo ? 'block' : 'none';
+    controlsRow.classList.toggle('embed-active', embed);
+
+    if (embed) {
+      embedHost.innerHTML = embedMarkup(t);
+      playBtn.textContent = '⏸';
+      eq.classList.remove('paused');
+      playing = true;
+    } else if (localVideo) {
+      video.src = t.src;
+      video.currentTime = 0;
+      setPlaying(true);
+    } else {
+      screenTitle.innerHTML = `${t.title} <span>—</span><br>${t.artist}`;
+      if (t.src) { audio.src = t.src; audio.currentTime = 0; }
+      setPlaying(true);
+    }
+  }
+
+  function tick(){
+    const t = playlist[current];
+    elapsed += 1;
+    bar.style.width = Math.min(100, (elapsed / t.seconds) * 100) + '%';
+    if (elapsed >= t.seconds) loadTrack(current + 1);
+  }
+
+  function setPlaying(state){
+    const t = playlist[current];
+    if (isEmbedTrack(t)) return; // playback for embeds is controlled inside their own iframe
+    playing = state;
+    playBtn.textContent = playing ? '⏸' : '▶';
+    eq.classList.toggle('paused', !playing);
+    clearInterval(timer);
+    if (isLocalVideo(t)) {
+      if (playing) video.play().catch(() => { playing = false; playBtn.textContent = '▶'; });
+      else video.pause();
+    } else if (t.src) {
+      if (playing) audio.play().catch(() => { playing = false; playBtn.textContent = '▶'; eq.classList.add('paused'); });
+      else audio.pause();
+    } else {
+      if (playing) timer = setInterval(tick, 1000);
+    }
+  }
+
+  audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return;
+    bar.style.width = (audio.currentTime / audio.duration) * 100 + '%';
+  });
+  audio.addEventListener('ended', () => loadTrack(current + 1));
+  video.addEventListener('timeupdate', () => {
+    if (!video.duration) return;
+    bar.style.width = (video.currentTime / video.duration) * 100 + '%';
+  });
+  video.addEventListener('ended', () => loadTrack(current + 1));
+
+  document.getElementById('nextBtn').addEventListener('click', () => loadTrack(current + 1));
+  document.getElementById('prevBtn').addEventListener('click', () => loadTrack(current - 1));
+  playBtn.addEventListener('click', () => setPlaying(!playing));
+  muteBtn.addEventListener('click', () => {
+    if (isEmbedTrack(playlist[current])) return;
+    audio.muted = !audio.muted;
+    video.muted = !video.muted;
+    muteBtn.textContent = audio.muted ? '🔇' : '🔊';
+  });
+  volumeSlider.addEventListener('input', () => {
+    audio.volume = volumeSlider.value / 100;
+    video.volume = volumeSlider.value / 100;
+  });
+
+  // Detects a YouTube / TikTok / Apple Music link and builds a playlist entry from it.
+  function parseLink(url){
+    url = url.trim();
+    let m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/i);
+    if (m) return { type: 'youtube', id: m[1], title: 'YouTube Video', artist: 'Imported Link', len: '--:--' };
+
+    m = url.match(/tiktok\.com\/[^\/]+\/video\/(\d+)/i);
+    if (m) return { type: 'tiktok', id: m[1], title: 'TikTok Video', artist: 'Imported Link', len: '--:--' };
+
+    if (/music\.apple\.com/i.test(url)) {
+      const embedUrl = url.replace('music.apple.com', 'embed.music.apple.com');
+      return { type: 'apple', embedUrl, title: 'Apple Music Track', artist: 'Imported Link', len: '--:--' };
+    }
+    return null;
+  }
+
+  async function addFromLink(){
+    if (!isAdmin) { alert('Log in as admin to add tracks.'); return; }
+    const track = parseLink(linkInput.value);
+    if (!track) { alert('Paste a valid YouTube, TikTok, or Apple Music link.'); return; }
+    const res = await fetch('/api/tracks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(track)
+    });
+    if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+    if (!res.ok) { alert('Could not add that link.'); return; }
+    linkInput.value = '';
+    await loadTracksFromServer();
+    loadTrack(playlist.length - 1);
+  }
+  linkAddBtn.addEventListener('click', addFromLink);
+  linkInput.addEventListener('keydown', e => { if (e.key === 'Enter') addFromLink(); });
+
+  uploadFile.addEventListener('change', () => {
+    uploadFileName.textContent = uploadFile.files[0] ? uploadFile.files[0].name : 'Choose a video file…';
+  });
+
+  async function uploadVideo(){
+    if (!isAdmin) { alert('Log in as admin to upload videos.'); return; }
+    const file = uploadFile.files[0];
+    if (!file) { alert('Choose a video file first.'); return; }
+
+    const original = uploadBtn.textContent;
+    uploadBtn.textContent = 'UPLOADING…'; uploadBtn.disabled = true;
+
+    const form = new FormData();
+    form.append('video', file);
+    if (uploadTitle.value.trim()) form.append('title', uploadTitle.value.trim());
+    if (uploadArtist.value.trim()) form.append('artist', uploadArtist.value.trim());
+
+    const res = await fetch('/api/tracks/upload', { method: 'POST', body: form });
+    uploadBtn.textContent = original; uploadBtn.disabled = false;
+
+    if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || 'Upload failed — try again.'); return; }
+
+    uploadFile.value = ''; uploadFileName.textContent = 'Choose a video file…';
+    uploadTitle.value = ''; uploadArtist.value = '';
+    await loadTracksFromServer();
+    loadTrack(playlist.length - 1);
+  }
+  uploadBtn.addEventListener('click', uploadVideo);
+
+  async function loadTracksFromServer(){
+    const res = await fetch('/api/tracks');
+    playlist = res.ok ? await res.json() : [];
+    renderList();
+  }
+
+  // ---- Inline price editing (admin only), shared by product & apparel cards ----
+  function wirePriceEdits(root){
+    root.querySelectorAll('.price-edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => startPriceEdit(btn));
+    });
+  }
+
+  function startPriceEdit(btn){
+    const row = btn.closest('.price-row');
+    const card = btn.closest('[data-apparel-id], [data-product-id]');
+    const id = card.dataset.apparelId || card.dataset.productId;
+    const endpoint = card.dataset.apparelId
+      ? `/api/apparel/${encodeURIComponent(id)}/price`
+      : `/api/products/${encodeURIComponent(id)}/price`;
+    const currentText = row.querySelector('.now').textContent.replace('$', '').replace(/,/g, '').trim();
+
+    const restore = (displayPrice) => {
+      row.innerHTML = `<span class="price"><span class="now">${displayPrice}</span></span><button class="price-edit-btn" type="button" title="Edit price">✎</button>`;
+      wirePriceEdits(row.parentElement);
+    };
+
+    row.innerHTML = `
+      <input type="number" step="0.01" min="0" class="price-input" value="${currentText}">
+      <button type="button" class="price-save-btn" title="Save">✓</button>
+      <button type="button" class="price-cancel-btn" title="Cancel">✕</button>
+    `;
+    const input = row.querySelector('.price-input');
+    input.focus(); input.select();
+
+    row.querySelector('.price-cancel-btn').addEventListener('click', () => restore(`$${currentText}`));
+
+    const save = async () => {
+      const res = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ price: input.value })
+      });
+      if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { alert(data.error || 'Could not update price.'); return; }
+      restore(data.price);
+    };
+    row.querySelector('.price-save-btn').addEventListener('click', save);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') save();
+      if (e.key === 'Escape') restore(`$${currentText}`);
+    });
+  }
+
+  // ---- Product grid (shop-audio-grid), rendered from /api/products ----
+  const shopGrid = document.getElementById('shopAudioGrid');
+
+  function renderProductCard(p){
+    return `
+      <div class="track-card" data-product-id="${p.id}">
+        ${isAdmin ? `<button class="track-delete" type="button" title="Remove listing">✕</button>` : ''}
+        <button class="track-play" data-track-id="${p.preview_track_id || ''}">▶</button>
+        <div class="track-info">
+          <div class="name">${p.name}</div>
+          <div class="type">${p.type_label}</div>
+        </div>
+        <div class="track-buy">
+          <div class="price-row">
+            <span class="price"><span class="now">${p.price}</span></span>
+            ${isAdmin ? `<button class="price-edit-btn" type="button" title="Edit price">✎</button>` : ''}
+          </div>
+          <button type="button" class="btn btn-red buy-btn" data-product-id="${p.id}">BUY</button>
+        </div>
+      </div>`;
+  }
+
+  async function loadProductsFromServer(){
+    const res = await fetch('/api/products');
+    const products = res.ok ? await res.json() : [];
+    shopGrid.innerHTML = products.length
+      ? products.map(renderProductCard).join('')
+      : `<p style="color:#666; font-size:13px;">No products listed.</p>`;
+
+    shopGrid.querySelectorAll('.track-play').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = playlist.findIndex(t => t.id === btn.dataset.trackId);
+        if (idx === -1) return;
+        loadTrack(idx);
+        document.querySelector('.player-panel').scrollIntoView({ behavior:'smooth', block:'center' });
+      });
+    });
+    shopGrid.querySelectorAll('.track-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remove this listing from the store?')) return;
+        const card = btn.closest('.track-card');
+        const res2 = await fetch(`/api/products/${encodeURIComponent(card.dataset.productId)}`, { method: 'DELETE' });
+        if (res2.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+        if (!res2.ok) { alert('Could not remove that listing.'); return; }
+        card.remove();
+      });
+    });
+    shopGrid.querySelectorAll('.buy-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const original = btn.textContent;
+        btn.textContent = '...'; btn.disabled = true;
+        const res2 = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: [btn.dataset.productId] })
+        });
+        const data = await res2.json().catch(() => ({}));
+        if (res2.status === 501) {
+          alert(data.error || 'Checkout isn\'t live yet.');
+        } else if (!res2.ok) {
+          alert(data.error || 'Checkout failed — try again.');
+        } else if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+        btn.textContent = original; btn.disabled = false;
+      });
+    });
+    wirePriceEdits(shopGrid);
+  }
+
+  // ---- Apparel catalog (real photos), grouped by category ----
+  const apparelGroups = document.getElementById('apparelGroups');
+  const CATEGORY_LABEL = { tshirt: 'T-Shirts', hoodie: 'Hoodies', hat: 'Hats' };
+  const CATEGORY_ORDER = ['hoodie', 'tshirt', 'hat'];
+
+  function renderApparelCard(item){
+    return `
+      <div class="card apparel-card" data-apparel-id="${item.id}">
+        <button class="apparel-delete" type="button" title="Remove listing">✕</button>
+        <div class="thumb"><img src="${item.image_path}" alt="${item.name}" loading="lazy"></div>
+        <h3>${item.name}</h3>
+        <div class="price-row">
+          <span class="price"><span class="now">${item.price}</span></span>
+          ${isAdmin ? `<button class="price-edit-btn" type="button" title="Edit price">✎</button>` : ''}
+        </div>
+        <button type="button" class="btn btn-red buy-btn" data-product-id="${item.id}" style="margin-top:10px; width:100%;">BUY</button>
+      </div>`;
+  }
+
+  async function loadApparelFromServer(){
+    const res = await fetch('/api/apparel');
+    const items = res.ok ? await res.json() : [];
+    if (!items.length) {
+      apparelGroups.innerHTML = `<p style="color:#666; font-size:13px;">No apparel listed yet.</p>`;
+      return;
+    }
+    const byCategory = {};
+    items.forEach(item => { (byCategory[item.category] = byCategory[item.category] || []).push(item); });
+
+    apparelGroups.innerHTML = CATEGORY_ORDER.filter(cat => byCategory[cat]).map(cat => `
+      <div class="apparel-group">
+        <h3>${CATEGORY_LABEL[cat] || cat}</h3>
+        <div class="grid">${byCategory[cat].map(renderApparelCard).join('')}</div>
+      </div>
+    `).join('');
+
+    apparelGroups.querySelectorAll('.apparel-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remove this listing from the store?')) return;
+        const card = btn.closest('.apparel-card');
+        const res2 = await fetch(`/api/apparel/${encodeURIComponent(card.dataset.apparelId)}`, { method: 'DELETE' });
+        if (res2.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+        if (!res2.ok) { alert('Could not remove that listing.'); return; }
+        card.remove();
+      });
+    });
+    apparelGroups.querySelectorAll('.buy-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const original = btn.textContent;
+        btn.textContent = '...'; btn.disabled = true;
+        const res2 = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: [btn.dataset.productId] })
+        });
+        const data = await res2.json().catch(() => ({}));
+        if (res2.status === 501) {
+          alert(data.error || "Checkout isn't live yet.");
+        } else if (!res2.ok) {
+          alert(data.error || 'Checkout failed — try again.');
+        } else if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+        btn.textContent = original; btn.disabled = false;
+      });
+    });
+    wirePriceEdits(apparelGroups);
+  }
+
+  // ---- Admin auth (real server session via httpOnly cookie) ----
+  const musicSection = document.getElementById('music');
+  const adminToggle = document.getElementById('adminToggle');
+  const apparelAdminToggle = document.getElementById('apparelAdminToggle');
+  const adminToggles = [adminToggle, apparelAdminToggle];
+  const adminOverlay = document.getElementById('adminOverlay');
+  const loginUser = document.getElementById('loginUser');
+  const loginPass = document.getElementById('loginPass');
+  const loginError = document.getElementById('loginError');
+
+  function setAdminMode(on){
+    isAdmin = on;
+    musicSection.classList.toggle('admin-mode', on);
+    apparelGroups.classList.toggle('admin-mode', on);
+    uploadAdd.classList.toggle('show', on);
+    adminToggles.forEach(btn => {
+      btn.classList.toggle('active', on);
+      btn.textContent = on ? '🔓 LOG OUT' : '🔒 ADMIN LOGIN';
+    });
+    renderList();
+    loadProductsFromServer();
+    loadApparelFromServer();
+  }
+
+  function openLogin(){
+    loginError.textContent = '';
+    loginUser.value = ''; loginPass.value = '';
+    adminOverlay.classList.add('open');
+    loginUser.focus();
+  }
+  function closeLogin(){ adminOverlay.classList.remove('open'); }
+
+  adminToggles.forEach(btn => btn.addEventListener('click', async () => {
+    if (isAdmin) {
+      await fetch('/api/logout', { method: 'POST' });
+      setAdminMode(false);
+      return;
+    }
+    openLogin();
+  }));
+
+  document.getElementById('loginCancelBtn').addEventListener('click', closeLogin);
+  adminOverlay.addEventListener('click', e => { if (e.target === adminOverlay) closeLogin(); });
+
+  async function submitLogin(){
+    loginError.textContent = '';
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: loginUser.value, password: loginPass.value })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { loginError.textContent = data.error || 'Login failed.'; return; }
+    closeLogin();
+    setAdminMode(true);
+  }
+  document.getElementById('loginSubmitBtn').addEventListener('click', submitLogin);
+  loginPass.addEventListener('keydown', e => { if (e.key === 'Enter') submitLogin(); });
+
+  // ---- Newsletter signup (opt-in visitor capture) ----
+  const signupForm = document.getElementById('signupForm');
+  const signupMsg = document.getElementById('signupMsg');
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signupEmail').value.trim();
+    signupMsg.textContent = 'Submitting…';
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, source: 'homepage' })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      signupMsg.textContent = "You're in — welcome to the movement.";
+      signupForm.reset();
+    } else {
+      signupMsg.textContent = data.error || 'Something went wrong — try again.';
+    }
+  });
+
+  // ---- Boot sequence ----
+  (async function init(){
+    await loadTracksFromServer();
+    if (playlist.length) {
+      loadTrack(0);
+    } else {
+      screenTitle.textContent = 'No tracks available';
+      title.textContent = '—'; artist.textContent = '—';
+    }
+    const meRes = await fetch('/api/me');
+    const me = await meRes.json().catch(() => ({ loggedIn: false }));
+    setAdminMode(!!me.loggedIn);
+  })();
+</script>
+</body>
+</html>
