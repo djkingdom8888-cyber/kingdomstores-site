@@ -47,7 +47,7 @@ app.config.update(
     MAX_CONTENT_LENGTH=300 * 1024 * 1024,  # 300MB — generous for phone-exported video clips
 )
 
-VIDEOS_DIR = SITE_DIR / "videos"
+VIDEOS_DIR = DATA_DIR / "videos"
 VIDEOS_DIR.mkdir(exist_ok=True)
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "m4v", "webm"}
 
@@ -266,6 +266,14 @@ def login_required(fn):
 @app.route("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")
+
+
+# Videos live on the persistent disk (DATA_DIR), which sits outside static_folder
+# (the git checkout) in production — Flask's built-in static handler can't see it,
+# so uploaded videos need this explicit route to actually be servable.
+@app.route("/videos/<path:filename>")
+def serve_video(filename):
+    return send_from_directory(VIDEOS_DIR, filename)
 
 
 # ---- auth API -----------------------------------------------------------------
