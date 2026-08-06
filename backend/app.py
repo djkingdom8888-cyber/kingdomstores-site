@@ -246,6 +246,20 @@ def init_db():
             f"username: {default_user}\npassword: {default_pass}\n"
             "Delete this file after you've noted the password (or change it — see README).\n"
         )
+
+    # Opt-in recovery/change path: if KS_ADMIN_RESET_PASSWORD is set, upsert that
+    # password for the admin user on startup. The auto-generated password from first
+    # boot only lives on the app container's ephemeral filesystem, not the persistent
+    # disk, so this is how access gets restored (or the password changed) in production.
+    reset_pass = os.environ.get("KS_ADMIN_RESET_PASSWORD")
+    if reset_pass:
+        reset_user = os.environ.get("KS_ADMIN_USER", "admin")
+        conn.execute(
+            "UPDATE admins SET password_hash = ? WHERE username = ?",
+            (generate_password_hash(reset_pass, method="pbkdf2:sha256"), reset_user),
+        )
+        conn.commit()
+
     conn.close()
 
 
