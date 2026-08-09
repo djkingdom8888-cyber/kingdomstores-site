@@ -500,6 +500,31 @@ def list_apparel():
     return jsonify([dict(r) for r in rows])
 
 
+@app.post("/api/apparel")
+@login_required
+def add_apparel():
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    category = (data.get("category") or "").strip().lower()
+    image_path = (data.get("image_path") or "").strip()
+    if not name or category not in ("tshirt", "hoodie", "hat") or not image_path:
+        return jsonify({"error": "name, category (tshirt/hoodie/hat), and image_path are required."}), 400
+    cents = parse_price_to_cents(data.get("price", "0"))
+    if cents is None:
+        return jsonify({"error": "Enter a valid, non-negative price."}), 400
+
+    conn = get_db()
+    next_order = (conn.execute("SELECT COALESCE(MAX(sort_order),0)+1 FROM apparel").fetchone()[0])
+    new_id = f"{category}-{secrets.token_hex(4)}"
+    conn.execute(
+        "INSERT INTO apparel (id, name, category, price, price_cents, image_path, sort_order) VALUES (?,?,?,?,?,?,?)",
+        (new_id, name, category, f"${cents / 100:,.2f}", cents, image_path, next_order),
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True, "id": new_id})
+
+
 @app.delete("/api/apparel/<item_id>")
 @login_required
 def delete_apparel(item_id):
