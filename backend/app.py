@@ -54,12 +54,16 @@ VIDEOS_DIR.mkdir(exist_ok=True)
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "m4v", "webm"}
 
 # Live streaming: pure signaling relay over Socket.IO (chat + WebRTC SDP/ICE).
-# threading async_mode needs no extra worker class for local/dev use (matches
-# how this app already runs via `python app.py`); a real production deploy
-# behind gunicorn's sync workers (see Procfile) would need an eventlet/gevent
-# worker class for websockets to work there too — not changed here since this
-# task is scoped to getting the feature itself working.
-socketio = SocketIO(app, async_mode="threading", cors_allowed_origins="*", max_http_buffer_size=300 * 1024 * 1024)
+# async_mode="gevent" is required to run correctly under gunicorn with a
+# GeventWebSocketWorker: leaving this as "threading" while running gunicorn
+# with a gevent-based worker class causes a websocket handshake failure
+# under real gunicorn ("rsv is not implemented, yet"), so both the worker
+# class (set on the deploy, not here) and this async_mode must be changed
+# together. Note this alone does not make room state shared across multiple
+# gunicorn *worker processes* (e.g. `--workers 2`) — Flask-SocketIO needs an
+# explicit message_queue (e.g. Redis) for that; without it, only clients
+# landing on the same worker process will see each other's messages.
+socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*", max_http_buffer_size=300 * 1024 * 1024)
 
 # ---- very small brute-force guard on /api/login -------------------------
 _login_attempts = {}  # ip -> (count, first_attempt_ts)
