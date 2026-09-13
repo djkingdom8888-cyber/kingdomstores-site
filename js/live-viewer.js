@@ -18,12 +18,14 @@
   const nameInput = document.getElementById("name-input");
   const nameSubmit = document.getElementById("name-submit");
   const statusBadge = document.getElementById("status-badge");
+  const switchCameraBtn = document.getElementById("switch-camera-btn");
 
   let myName = sessionStorage.getItem("ks_viewer_name") || "";
   let broadcastPc = null;
   let hostSid = null;
   let guestPc = null;
   let localGuestStream = null;
+  let guestFacingMode = "user";
 
   function escapeHtml(s) {
     return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -96,7 +98,10 @@
     requestBtn.disabled = true;
     cameraStatus.textContent = "Requesting access to your camera…";
     try {
-      localGuestStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localGuestStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: guestFacingMode } },
+        audio: true,
+      });
     } catch (e) {
       cameraStatus.textContent = "Camera/mic access denied.";
       requestBtn.disabled = false;
@@ -114,8 +119,38 @@
       return;
     }
     cameraStatus.textContent = "You're live! The host can now see and hear you.";
+    if (switchCameraBtn) switchCameraBtn.classList.remove("hidden");
     startGuestConnection(data.host_sid);
   });
+
+  // Unlike the host's own camera (which only feeds a canvas the host redraws
+  // locally), this stream is sent directly over guestPc -- so switching the
+  // camera here means replacing the actual outgoing track on the connection,
+  // not just swapping what a <video> element shows.
+  if (switchCameraBtn) {
+    switchCameraBtn.onclick = async () => {
+      if (!guestPc || !localGuestStream) return;
+      const nextFacing = guestFacingMode === "user" ? "environment" : "user";
+      switchCameraBtn.disabled = true;
+      try {
+        const newStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: nextFacing } },
+        });
+        const newTrack = newStream.getVideoTracks()[0];
+        const sender = guestPc.getSenders().find((s) => s.track && s.track.kind === "video");
+        if (sender) await sender.replaceTrack(newTrack);
+        const oldTrack = localGuestStream.getVideoTracks()[0];
+        localGuestStream.removeTrack(oldTrack);
+        oldTrack.stop();
+        localGuestStream.addTrack(newTrack);
+        guestFacingMode = nextFacing;
+      } catch (err) {
+        alert("Couldn't switch camera: " + err.message);
+      } finally {
+        switchCameraBtn.disabled = false;
+      }
+    };
+  }
 
   function startGuestConnection(hostSidForGuest) {
     guestPc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });

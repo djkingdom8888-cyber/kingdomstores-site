@@ -24,6 +24,18 @@
           <canvas id="compose-canvas" width="1280" height="720"></canvas>
           <video id="self-preview" autoplay playsinline muted style="display:none;"></video>
         </div>
+        <div class="stage-controls">
+          <button id="switch-camera-btn" class="btn btn-outline btn-sm" type="button">&#128260; Switch Camera</button>
+          <select id="filter-select">
+            <option value="vivid" selected>Vivid</option>
+            <option value="none">None</option>
+            <option value="mono">Mono</option>
+            <option value="noir">Noir</option>
+            <option value="warm">Warm</option>
+            <option value="cool">Cool</option>
+            <option value="dreamy">Dreamy</option>
+          </select>
+        </div>
         <div id="camera-requests" style="margin-top:16px;"></div>
       </div>
 

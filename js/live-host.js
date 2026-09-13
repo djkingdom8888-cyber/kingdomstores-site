@@ -18,6 +18,23 @@
   const chatInput = document.getElementById("chat-input");
   const chatSend = document.getElementById("chat-send");
   const statusBadge = document.getElementById("status-badge");
+  const switchCameraBtn = document.getElementById("switch-camera-btn");
+  const filterSelect = document.getElementById("filter-select");
+
+  // Applied at canvas draw time, not to the raw camera feed -- this is why
+  // guests get it too: everyone's tile is drawn through this same filter
+  // before being broadcast, so there's nothing to apply on the guest side.
+  const FILTERS = {
+    none: "none",
+    vivid: "saturate(1.5) contrast(1.12) brightness(1.03)",
+    mono: "grayscale(1) contrast(1.1)",
+    noir: "grayscale(1) contrast(1.45) brightness(0.92)",
+    warm: "sepia(0.35) saturate(1.35) brightness(1.05)",
+    cool: "saturate(1.15) hue-rotate(-8deg) brightness(1.02) contrast(1.05)",
+    dreamy: "brightness(1.1) contrast(0.92) saturate(1.15) blur(0.4px)",
+  };
+  let currentFilter = filterSelect ? filterSelect.value : "vivid";
+  let currentFacingMode = "user"; // "user" = front/selfie camera, "environment" = back camera
 
   let hostStream = null;
   let finalStream = null; // composed video (canvas) + mixed audio, sent to viewers & recorded
@@ -46,7 +63,10 @@
 
   // ---------------- Camera + canvas compositing loop ----------------
   async function initCamera() {
-    hostStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    hostStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: currentFacingMode } },
+      audio: true,
+    });
     selfPreview.srcObject = hostStream;
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -60,6 +80,39 @@
     ]);
 
     drawLoop();
+  }
+
+  // Swaps the host's own camera between front/back. This never needs to touch
+  // any RTCPeerConnection: what viewers actually receive is the CANVAS's
+  // captured stream, and the canvas just draws whatever `selfPreview` shows
+  // right now -- so re-pointing selfPreview at a new video track is the whole
+  // fix. The mic (and the AudioContext node already wired to it) is left
+  // completely alone.
+  async function switchCamera() {
+    if (!hostStream) return;
+    const nextFacing = currentFacingMode === "user" ? "environment" : "user";
+    switchCameraBtn.disabled = true;
+    try {
+      const newVideoStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: nextFacing } },
+      });
+      const newTrack = newVideoStream.getVideoTracks()[0];
+      const oldTrack = hostStream.getVideoTracks()[0];
+      hostStream.removeTrack(oldTrack);
+      oldTrack.stop();
+      hostStream.addTrack(newTrack);
+      selfPreview.srcObject = hostStream; // re-assign so the element notices the swap
+      currentFacingMode = nextFacing;
+    } catch (err) {
+      alert("Couldn't switch camera: " + err.message);
+    } finally {
+      switchCameraBtn.disabled = false;
+    }
+  }
+  switchCameraBtn.onclick = switchCamera;
+
+  if (filterSelect) {
+    filterSelect.onchange = () => { currentFilter = filterSelect.value; };
   }
 
   // "Cover"-style draw (like CSS object-fit: cover): fills the target cell
@@ -94,7 +147,10 @@
       const x = col * cellW;
       const y = row * cellH;
       if (tile.el.readyState >= 2) {
+        ctx.save();
+        ctx.filter = FILTERS[currentFilter] || "none";
         drawCover(tile.el, x, y, cellW, cellH);
+        ctx.restore();
       }
       ctx.save();
       ctx.strokeStyle = i === 0 ? "rgba(255,255,255,0.25)" : "#c8102e";
