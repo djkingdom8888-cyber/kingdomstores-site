@@ -1,0 +1,54 @@
+{% extends "live_base.html" %}
+{% block title %}Kingdom Live | Kingdom Stores{% endblock %}
+{% block content %}
+
+<section class="section" style="padding-top:48px;">
+  <div class="wrap">
+    <span class="eyebrow">Live</span>
+    <h2 style="margin-top:14px; margin-bottom:32px;">Kingdom Live — Broadcasts &amp; Replays</h2>
+
+    <h3 style="margin-bottom:16px;">&#9679; Live Now</h3>
+    {% if live_now %}
+    <div class="card-grid" style="margin-bottom:48px;">
+      {% for s in live_now %}
+      <a class="media-card" href="/live/{{ s['room_code'] }}">
+        <div class="thumb"><span class="badge-kind" style="background:var(--red);">&#9679; LIVE</span>&#128225;</div>
+        <div class="body"><h3>{{ s['title'] }}</h3><p>Hosted by {{ s['host_name'] }}</p></div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-note" style="margin-bottom:48px;">Nothing live right now — check back soon.</p>
+    {% endif %}
+
+    <h3 style="margin-bottom:16px;">Scheduled</h3>
+    {% if scheduled %}
+    <div class="card-grid" style="margin-bottom:48px;">
+      {% for s in scheduled %}
+      <div class="media-card">
+        <div class="thumb"><span class="badge-kind">Scheduled</span>&#128197;</div>
+        <div class="body"><h3>{{ s['title'] }}</h3><p>Hosted by {{ s['host_name'] }}</p></div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-note" style="margin-bottom:48px;">Nothing scheduled yet.</p>
+    {% endif %}
+
+    <h3 style="margin-bottom:16px;">Replays</h3>
+    {% if ended %}
+    <div class="card-grid">
+      {% for s in ended %}
+      <a class="media-card" href="/live/{{ s['room_code'] }}/replay">
+        <div class="thumb"><span class="badge-kind">Replay</span>&#9654;</div>
+        <div class="body"><h3>{{ s['title'] }}</h3><p>Hosted by {{ s['host_name'] }}</p></div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-note">No replays available yet.</p>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}

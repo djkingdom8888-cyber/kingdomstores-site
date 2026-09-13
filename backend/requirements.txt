@@ -1,4 +1,5 @@
 flask>=3.0
+flask-socketio>=5.3
 stripe>=15.0
 python-dotenv>=1.0
 requests>=2.31

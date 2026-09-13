@@ -1,0 +1,49 @@
+{% extends "live_base.html" %}
+{% block title %}Host: {{ live_session['title'] }} | Kingdom Stores{% endblock %}
+{% block content %}
+
+<section class="section" style="padding-top:32px;">
+  <div class="wrap">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="status-badge {{ live_session['status'] }}" id="status-badge">{{ live_session['status']|upper }}</span>
+        <h2 style="font-size:22px;">{{ live_session['title'] }} <span style="color:var(--text-gray); font-weight:400; font-size:14px; text-transform:none; font-family:'Inter',sans-serif;">(host console)</span></h2>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button id="go-live-btn" class="btn btn-red">&#9654; Go Live</button>
+        <button id="end-live-btn" class="btn btn-outline" disabled>&#9632; End &amp; Save</button>
+      </div>
+    </div>
+    <p style="color:var(--text-gray); font-size:13px; margin-bottom:20px;">
+      Share this with viewers: <code style="background:var(--gray); padding:3px 8px; border-radius:3px;">{{ request.host_url }}live/{{ live_session['room_code'] }}</code>
+    </p>
+
+    <div class="live-grid">
+      <div>
+        <div class="live-stage">
+          <canvas id="compose-canvas" width="1280" height="720"></canvas>
+          <video id="self-preview" autoplay playsinline muted style="display:none;"></video>
+        </div>
+        <div id="camera-requests" style="margin-top:16px;"></div>
+      </div>
+
+      <div class="chat-panel">
+        <div class="chat-head">Live Chat</div>
+        <div id="chat-messages" class="chat-messages"></div>
+        <div class="chat-input-row">
+          <input id="chat-input" type="text" placeholder="Say something…" maxlength="300">
+          <button id="chat-send" class="btn btn-red btn-sm">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+  window.LIVE_ROOM = {{ live_session['room_code']|tojson }};
+  window.HOST_NAME = {{ (live_session['host_name'] or 'Kingdom Stores')|tojson }};
+</script>
+<script src="/js/live-host.js"></script>
+
+{% endblock %}

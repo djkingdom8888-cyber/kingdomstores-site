@@ -1,0 +1,16 @@
+{% extends "live_base.html" %}
+{% block title %}Replay: {{ live_session['title'] }} | Kingdom Stores{% endblock %}
+{% block content %}
+
+<section class="section" style="padding-top:40px;">
+  <div class="wrap">
+    <div class="player-shell" style="margin-bottom:24px;">
+      <video src="/{{ live_session['recording_path'] }}" controls></video>
+    </div>
+    <span class="eyebrow">Replay</span>
+    <h1 style="margin-top:14px; font-size:clamp(24px,3.4vw,34px);">{{ live_session['title'] }}</h1>
+    <p style="margin-top:10px; color:var(--text-gray); font-size:13.5px;">Hosted by {{ live_session['host_name'] }} &middot; Originally aired {{ live_session['started_at'] }}</p>
+  </div>
+</section>
+
+{% endblock %}

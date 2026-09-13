@@ -457,6 +457,25 @@
     font-size:12px; color:#777; flex-wrap:wrap; gap:10px;
   }
 
+  /* Kingdom Live section */
+  .live-section{background:var(--black); color:var(--white);}
+  .live-section .section-head{border-color:var(--white);}
+  .live-card-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:18px; margin-bottom:24px;}
+  .live-card{background:#111; border:1px solid #262626; display:block; transition:0.15s;}
+  .live-card:hover{border-color:var(--red);}
+  .live-card .thumb{background:#1a1a1a; height:120px; display:flex; align-items:center; justify-content:center; font-size:28px; position:relative;}
+  .live-card .thumb .kind{position:absolute; top:8px; left:8px; font-size:10px; font-weight:800; letter-spacing:1px; padding:4px 8px; text-transform:uppercase;}
+  .live-card .thumb .kind.live{background:var(--red); color:var(--white);}
+  .live-card .thumb .kind.replay{background:#333; color:var(--white);}
+  .live-card .body{padding:12px 14px;}
+  .live-card .body h4{font-size:14px; margin-bottom:2px; text-transform:none; font-family:'Inter'; font-weight:700;}
+  .live-card .body p{font-size:11.5px; color:#999;}
+  .live-empty{color:#999; font-size:13px; margin-bottom:24px;}
+  .live-admin-box{border:1px solid #333; padding:20px; display:none; gap:12px; flex-wrap:wrap; align-items:center; margin-top:8px;}
+  .live-section.admin-mode .live-admin-box{display:flex;}
+  .live-admin-box input{padding:12px 14px; font-size:13px; font-family:'Inter'; border:1px solid #333; background:#0a0a0a; color:var(--white); flex:1; min-width:180px;}
+  .live-admin-box input::placeholder{color:#777;}
+
   @media (max-width:900px){
     .grid{grid-template-columns:repeat(2,1fr);}
     .hero{grid-template-columns:1fr;}
@@ -485,6 +504,7 @@
           <li><a href="#shop">Shop</a></li>
           <li><a href="#custom">Customize</a></li>
           <li><a href="#music">Music</a></li>
+          <li><a href="/live">Live</a></li>
           <li><a href="#about">Our Mission</a></li>
         </ul>
       </nav>
@@ -600,6 +620,23 @@
         <div class="shop-audio-grid" id="shopAudioGrid">
           <p style="color:#666; font-size:13px;">Loading products…</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section live-section" id="live">
+    <div class="container">
+      <div class="section-head">
+        <h2>Kingdom Live</h2>
+        <a href="/live" class="view-all">Watch Live &amp; Replays →</a>
+      </div>
+      <div id="liveNowGrid" class="live-card-grid"></div>
+      <p id="liveEmptyNote" class="live-empty" style="display:none;">Nothing live right now — check <a href="/live" style="text-decoration:underline; color:var(--white);">/live</a> for scheduled sessions and replays.</p>
+
+      <div class="live-admin-box" id="liveAdminBox">
+        <input type="text" id="liveTitleInput" placeholder="Session title (e.g. Sunday Night Worship)">
+        <input type="text" id="liveHostInput" placeholder="Host name (optional)">
+        <button id="liveGoBtn" class="btn btn-red" type="button">START A LIVE SESSION</button>
       </div>
     </div>
   </section>
@@ -1128,6 +1165,57 @@
     wirePriceEdits(apparelGroups);
   }
 
+  // ---- Kingdom Live (sibling of the tracks/video feature above) ----
+  const liveSection = document.getElementById('live');
+  const liveNowGrid = document.getElementById('liveNowGrid');
+  const liveEmptyNote = document.getElementById('liveEmptyNote');
+  const liveTitleInput = document.getElementById('liveTitleInput');
+  const liveHostInput = document.getElementById('liveHostInput');
+  const liveGoBtn = document.getElementById('liveGoBtn');
+
+  async function loadLiveNow(){
+    try {
+      const res = await fetch('/api/live/sessions?status=live');
+      const sessions = await res.json().catch(() => []);
+      if (!Array.isArray(sessions) || sessions.length === 0) {
+        liveNowGrid.innerHTML = '';
+        liveEmptyNote.style.display = 'block';
+        return;
+      }
+      liveEmptyNote.style.display = 'none';
+      liveNowGrid.innerHTML = sessions.map(s => `
+        <a class="live-card" href="/live/${encodeURIComponent(s.room_code)}">
+          <div class="thumb"><span class="kind live">● LIVE</span>📡</div>
+          <div class="body"><h4>${s.title}</h4><p>Hosted by ${s.host_name || 'Kingdom Stores'}</p></div>
+        </a>`).join('');
+    } catch (e) {
+      liveNowGrid.innerHTML = '';
+      liveEmptyNote.style.display = 'block';
+    }
+  }
+
+  liveGoBtn.addEventListener('click', async () => {
+    if (!isAdmin) { alert('Log in as admin to start a live session.'); return; }
+    const title = liveTitleInput.value.trim();
+    if (!title) { alert('Enter a title for the live session.'); return; }
+    liveGoBtn.disabled = true;
+    liveGoBtn.textContent = 'STARTING…';
+    try {
+      const res = await fetch('/api/live/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, host_name: liveHostInput.value.trim() })
+      });
+      if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { alert(data.error || 'Could not start the live session.'); return; }
+      window.location.href = `/live/${data.room_code}/host`;
+    } finally {
+      liveGoBtn.disabled = false;
+      liveGoBtn.textContent = 'START A LIVE SESSION';
+    }
+  });
+
   // ---- Admin auth (real server session via httpOnly cookie) ----
   const musicSection = document.getElementById('music');
   const adminToggle = document.getElementById('adminToggle');
@@ -1142,6 +1230,7 @@
     isAdmin = on;
     musicSection.classList.toggle('admin-mode', on);
     apparelGroups.classList.toggle('admin-mode', on);
+    liveSection.classList.toggle('admin-mode', on);
     uploadAdd.classList.toggle('show', on);
     adminToggles.forEach(btn => {
       btn.classList.toggle('active', on);
@@ -1217,6 +1306,7 @@
       screenTitle.textContent = 'No tracks available';
       title.textContent = '—'; artist.textContent = '—';
     }
+    await loadLiveNow();
     const meRes = await fetch('/api/me');
     const me = await meRes.json().catch(() => ({ loggedIn: false }));
     setAdminMode(!!me.loggedIn);
