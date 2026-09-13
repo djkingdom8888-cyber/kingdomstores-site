@@ -295,9 +295,9 @@
   .eq.paused i{animation-play-state:paused; height:6px !important;}
   @keyframes eqbar{0%,100%{height:8px;}50%{height:60px;}}
   .player-live{
-    position:absolute; top:14px; left:14px; z-index:2;
     background:var(--red); color:var(--white); font-size:11px; font-weight:800;
-    letter-spacing:1.5px; padding:5px 10px; display:flex; align-items:center; gap:6px;
+    letter-spacing:1.5px; padding:6px 10px; display:flex; align-items:center; gap:6px;
+    width:fit-content;
   }
   .player-live .dot{width:7px; height:7px; border-radius:50%; background:var(--white); animation:pulse 1.4s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
@@ -573,8 +573,8 @@
       <div class="music-layout">
 
         <div class="player-panel">
+          <span class="player-live"><span class="dot"></span> 24/7 MUSIC VIDEO CHANNEL</span>
           <div class="player-screen">
-            <span class="player-live"><span class="dot"></span> 24/7 MUSIC VIDEO CHANNEL</span>
             <div class="visualizer" id="visualizer">
               <div class="screen-title" id="screenTitle">Loading…</div>
               <div class="eq" id="eq">
