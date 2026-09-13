@@ -1149,15 +1149,27 @@ def on_host_end_live(data):
     emit("live_status", {"status": "ended"}, to=room_code)
 
 
-@socketio.on("request_camera")
-def on_request_camera(data):
+@socketio.on("camera_offer")
+def on_camera_offer(data):
+    # Viewer sends its WebRTC offer up front (not after approval) so the host
+    # can preview their live camera/mic before deciding -- this event carries
+    # both the join request and the SDP that used to arrive separately, later,
+    # only once approved.
     room_code = data.get("room")
     name = data.get("name", "Guest")
+    sdp = data.get("sdp")
+    if not sdp:
+        return
     live_session = get_live_session_by_room(room_code)
     if not live_session:
         return
     req_id = create_camera_request(live_session["id"], name, request.sid)
-    emit("camera_request", {"request_id": req_id, "name": name, "socket_id": request.sid}, to=room_code)
+    emit(
+        "camera_offer",
+        {"request_id": req_id, "name": name, "sdp": sdp, "socket_id": request.sid},
+        to=room_code,
+        include_self=False,
+    )
 
 
 @socketio.on("respond_camera")
