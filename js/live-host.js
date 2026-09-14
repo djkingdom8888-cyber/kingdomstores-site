@@ -9,7 +9,10 @@
   const socket = io();
 
   const canvas = document.getElementById("compose-canvas");
-  const ctx = canvas.getContext("2d");
+  // willReadFrequently: the filter pass below calls getImageData every frame
+  // once live -- this hint keeps Chromium/WebKit from re-optimizing the
+  // context for GPU compositing only, which would make that call much slower.
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
   const selfPreview = document.getElementById("self-preview");
   const goLiveBtn = document.getElementById("go-live-btn");
   const endLiveBtn = document.getElementById("end-live-btn");
@@ -21,18 +24,90 @@
   const switchCameraBtn = document.getElementById("switch-camera-btn");
   const filterSelect = document.getElementById("filter-select");
 
-  // Applied at canvas draw time, not to the raw camera feed -- this is why
-  // guests get it too: everyone's tile is drawn through this same filter
-  // before being broadcast, so there's nothing to apply on the guest side.
-  const FILTERS = {
-    none: "none",
-    vivid: "saturate(1.5) contrast(1.12) brightness(1.03)",
-    mono: "grayscale(1) contrast(1.1)",
-    noir: "grayscale(1) contrast(1.45) brightness(0.92)",
-    warm: "sepia(0.35) saturate(1.35) brightness(1.05)",
-    cool: "saturate(1.15) hue-rotate(-8deg) brightness(1.02) contrast(1.05)",
-    dreamy: "brightness(1.1) contrast(0.92) saturate(1.15) blur(0.4px)",
+  // Filters used to be applied via ctx.filter = "<css filter string>" at
+  // draw time. That property is unreliable on WebKit/iOS Safari -- multi-
+  // function filter strings frequently render as a silent no-op there even
+  // though the property exists, which is exactly the "picking a filter does
+  // nothing" bug this replaces. To get identical, guaranteed behavior on
+  // every platform (desktop, Safari, iOS, Android), each filter is instead
+  // precomputed as a single 3x3 color matrix + bias (composing the whole
+  // recipe -- saturate, contrast, brightness, etc, in order) and applied by
+  // hand to the composited frame's raw pixels once per frame via
+  // getImageData/putImageData. Pure arithmetic, no browser filter API
+  // involved, so it can't silently fail to apply.
+  function mulM(a, b) {
+    const r = new Array(9);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      r[i * 3 + j] = a[i * 3 + 0] * b[0 * 3 + j] + a[i * 3 + 1] * b[1 * 3 + j] + a[i * 3 + 2] * b[2 * 3 + j];
+    }
+    return r;
+  }
+  function mulMV(m, v) { return [m[0] * v[0] + m[1] * v[1] + m[2] * v[2], m[3] * v[0] + m[4] * v[1] + m[5] * v[2], m[6] * v[0] + m[7] * v[1] + m[8] * v[2]]; }
+  function addV(a, b) { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
+  // Composes "apply (M1,b1) first, then (M2,b2)" into one matrix/bias pair:
+  // out = M2*(M1*x + b1) + b2 = (M2*M1)*x + (M2*b1 + b2)
+  function compose(M2, b2, M1, b1) { return { M: mulM(M2, M1), b: addV(mulMV(M2, b1), b2) }; }
+  const IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  function brightnessOp(amt) { return { M: [amt, 0, 0, 0, amt, 0, 0, 0, amt], b: [0, 0, 0] }; }
+  function contrastOp(amt) { const k = (1 - amt) * 128; return { M: [amt, 0, 0, 0, amt, 0, 0, 0, amt], b: [k, k, k] }; }
+  function saturateOp(s) {
+    return {
+      M: [
+        0.213 + 0.787 * s, 0.715 - 0.715 * s, 0.072 - 0.072 * s,
+        0.213 - 0.213 * s, 0.715 + 0.285 * s, 0.072 - 0.072 * s,
+        0.213 - 0.213 * s, 0.715 - 0.715 * s, 0.072 + 0.928 * s,
+      ], b: [0, 0, 0],
+    };
+  }
+  function grayscaleOp() { return { M: [0.2126, 0.7152, 0.0722, 0.2126, 0.7152, 0.0722, 0.2126, 0.7152, 0.0722], b: [0, 0, 0] }; }
+  function sepiaOp(amt) {
+    const full = [0.393, 0.769, 0.189, 0.349, 0.686, 0.168, 0.272, 0.534, 0.131];
+    return { M: full.map((v, i) => IDENTITY[i] * (1 - amt) + v * amt), b: [0, 0, 0] };
+  }
+  function hueRotateOp(deg) {
+    const a = (deg * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
+    return {
+      M: [
+        0.213 + c * 0.787 - s * 0.213, 0.715 - c * 0.715 - s * 0.715, 0.072 - c * 0.072 + s * 0.928,
+        0.213 - c * 0.213 + s * 0.143, 0.715 + c * 0.285 + s * 0.140, 0.072 - c * 0.072 - s * 0.283,
+        0.213 - c * 0.213 - s * 0.787, 0.715 - c * 0.715 + s * 0.715, 0.072 + c * 0.928 + s * 0.072,
+      ], b: [0, 0, 0],
+    };
+  }
+  function chainOps(ops) {
+    let cur = { M: IDENTITY, b: [0, 0, 0] };
+    for (const op of ops) cur = compose(op.M, op.b, cur.M, cur.b);
+    return cur;
+  }
+  // Same recipes as before (matching the original CSS filter strings), minus
+  // dreamy's blur(0.4px) -- too subtle to matter and not worth a per-frame
+  // convolution pass; the color grade is what actually reads as "dreamy".
+  const FILTER_OPS = {
+    none: null,
+    vivid: chainOps([saturateOp(1.5), contrastOp(1.12), brightnessOp(1.03)]),
+    mono: chainOps([grayscaleOp(), contrastOp(1.1)]),
+    noir: chainOps([grayscaleOp(), contrastOp(1.45), brightnessOp(0.92)]),
+    warm: chainOps([sepiaOp(0.35), saturateOp(1.35), brightnessOp(1.05)]),
+    cool: chainOps([saturateOp(1.15), hueRotateOp(-8), brightnessOp(1.02), contrastOp(1.05)]),
+    dreamy: chainOps([brightnessOp(1.1), contrastOp(0.92), saturateOp(1.15)]),
   };
+  function clamp255(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
+  function applyFrameFilter(name) {
+    const op = FILTER_OPS[name];
+    if (!op) return; // "none" (or an unrecognized name) -- leave the frame untouched
+    const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const d = frame.data;
+    const M = op.M, b = op.b;
+    const m0 = M[0], m1 = M[1], m2 = M[2], m3 = M[3], m4 = M[4], m5 = M[5], m6 = M[6], m7 = M[7], m8 = M[8];
+    const b0 = b[0], b1 = b[1], b2 = b[2];
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], g = d[i + 1], bl = d[i + 2];
+      d[i] = clamp255(m0 * r + m1 * g + m2 * bl + b0);
+      d[i + 1] = clamp255(m3 * r + m4 * g + m5 * bl + b1);
+      d[i + 2] = clamp255(m6 * r + m7 * g + m8 * bl + b2);
+    }
+    ctx.putImageData(frame, 0, 0);
+  }
   let currentFilter = filterSelect ? filterSelect.value : "vivid";
   let currentFacingMode = "user"; // "user" = front/selfie camera, "environment" = back camera
 
@@ -153,10 +228,7 @@
       const x = col * cellW;
       const y = row * cellH;
       if (tile.el.readyState >= 2) {
-        ctx.save();
-        ctx.filter = FILTERS[currentFilter] || "none";
         drawCover(tile.el, x, y, cellW, cellH);
-        ctx.restore();
       }
       ctx.save();
       ctx.strokeStyle = i === 0 ? "rgba(255,255,255,0.25)" : "#c8102e";
@@ -170,6 +242,12 @@
       ctx.fillText(tile.name, x + 16, y + cellH - 14);
       ctx.restore();
     });
+
+    // Applied once to the whole composited frame (grid + borders + labels)
+    // rather than per-tile before -- one getImageData/putImageData pass is
+    // far cheaper than N of them, and still applies to every guest tile
+    // automatically since it runs after all of them are drawn.
+    applyFrameFilter(currentFilter);
 
     requestAnimationFrame(drawLoop);
   }
