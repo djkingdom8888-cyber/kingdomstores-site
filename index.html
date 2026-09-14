@@ -409,6 +409,13 @@
   }
   .player-list .del-track:hover{border-color:var(--red); color:var(--red); background:rgba(200,16,46,0.1);}
   .music-section.admin-mode .player-list .del-track{display:flex;}
+  .player-list .edit-track{
+    display:none; background:transparent; border:1px solid #444; color:#999; width:22px; height:22px;
+    min-width:22px; border-radius:50%; cursor:pointer; font-size:10px; align-items:center; justify-content:center;
+    margin-left:8px;
+  }
+  .player-list .edit-track:hover{border-color:var(--white); color:var(--white); background:rgba(255,255,255,0.08);}
+  .music-section.admin-mode .player-list .edit-track{display:flex;}
   .track-play{
     width:52px; height:52px; min-width:52px; border-radius:50%; background:var(--red); color:var(--white);
     display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; border:none;
@@ -475,6 +482,24 @@
   .live-section.admin-mode .live-admin-box{display:flex;}
   .live-admin-box input{padding:12px 14px; font-size:13px; font-family:'Inter'; border:1px solid #333; background:#0a0a0a; color:var(--white); flex:1; min-width:180px;}
   .live-admin-box input::placeholder{color:#777;}
+  .live-admin-sessions{display:none; margin-top:16px; border:1px solid #333;}
+  .live-section.admin-mode .live-admin-sessions{display:block;}
+  .live-admin-sessions h4{font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#999; padding:14px 16px 0;}
+  .live-session-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border-top:1px solid #262626; flex-wrap:wrap;}
+  .live-session-row .status-pill{font-size:10px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; padding:3px 8px; margin-right:8px;}
+  .live-session-row .status-pill.live{background:var(--red); color:var(--white);}
+  .live-session-row .status-pill.scheduled{background:#333; color:var(--white);}
+  .live-session-row .status-pill.ended{background:#1a1a1a; color:#999; border:1px solid #333;}
+  .live-session-row .links a{color:#ccc; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-left:12px;}
+  .live-session-row .links a:hover{color:var(--white);}
+  .live-session-row .links button{
+    background:transparent; border:none; color:#ccc; font-size:11px; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.5px; margin-left:12px; cursor:pointer; font-family:'Inter';
+  }
+  .live-session-row .links button:hover{color:var(--white);}
+  .live-session-row .links .live-delete-btn{color:var(--red);}
+  .live-session-row .links .live-delete-btn:hover{color:#ff4d5e;}
+  .live-admin-sessions .live-empty{padding:0 16px 14px; margin:0;}
 
   @media (max-width:900px){
     .grid{grid-template-columns:repeat(2,1fr);}
@@ -638,6 +663,11 @@
         <input type="text" id="liveHostInput" placeholder="Host name (optional)">
         <button id="liveGoBtn" class="btn btn-red" type="button">START A LIVE SESSION</button>
       </div>
+
+      <div class="live-admin-sessions" id="liveAdminSessions">
+        <h4>Manage Sessions</h4>
+        <div id="liveSessionsList"></div>
+      </div>
     </div>
   </section>
 
@@ -767,7 +797,7 @@
         <span class="idx">${String(i+1).padStart(2,'0')}</span>
         <span class="meta">${PLATFORM_LABEL[t.type] ? `<span class="platform">${PLATFORM_LABEL[t.type]}</span>` : ''}<span class="t">${t.title}</span><br><span class="a">${t.artist}</span></span>
         <span class="len">${t.len}</span>
-        ${isAdmin ? `<button class="del-track" type="button" data-idx="${i}" title="Delete track">✕</button>` : ''}
+        ${isAdmin ? `<button class="edit-track" type="button" data-idx="${i}" title="Edit title/artist">✎</button><button class="del-track" type="button" data-idx="${i}" title="Delete track">✕</button>` : ''}
       </li>`).join('');
     listEl.querySelectorAll('li').forEach(li => {
       li.addEventListener('click', () => loadTrack(parseInt(li.dataset.idx)));
@@ -778,6 +808,31 @@
         deleteTrack(parseInt(btn.dataset.idx));
       });
     });
+    listEl.querySelectorAll('.edit-track').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        editTrack(parseInt(btn.dataset.idx));
+      });
+    });
+  }
+
+  async function editTrack(i){
+    const t = playlist[i];
+    const newTitle = prompt('Track title:', t.title);
+    if (newTitle === null) return;
+    const newArtist = prompt('Artist:', t.artist);
+    if (newArtist === null) return;
+    const res = await fetch(`/api/tracks/${encodeURIComponent(t.id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle.trim(), artist: newArtist.trim() })
+    });
+    if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || 'Could not update that track.'); return; }
+    t.title = newTitle.trim(); t.artist = newArtist.trim();
+    renderList();
+    if (i === current) { title.textContent = t.title; artist.textContent = t.artist; }
   }
 
   async function deleteTrack(i){
@@ -1172,6 +1227,71 @@
   const liveTitleInput = document.getElementById('liveTitleInput');
   const liveHostInput = document.getElementById('liveHostInput');
   const liveGoBtn = document.getElementById('liveGoBtn');
+  const liveSessionsList = document.getElementById('liveSessionsList');
+  const STATUS_LABEL = { live: 'Live', scheduled: 'Scheduled', ended: 'Ended' };
+  let liveSessionsCache = [];
+
+  function renderLiveSessionRow(s){
+    const links = [`<a href="/live/${encodeURIComponent(s.room_code)}" target="_blank" rel="noopener">Viewer link</a>`];
+    links.push(`<a href="/live/${encodeURIComponent(s.room_code)}/host" target="_blank" rel="noopener">Host console</a>`);
+    if (s.status === 'ended' && s.recording_path) links.push(`<a href="/live/${encodeURIComponent(s.room_code)}/replay" target="_blank" rel="noopener">Replay</a>`);
+    links.push(`<button class="live-edit-btn" type="button" data-id="${s.id}" title="Edit title">✎ Edit</button>`);
+    links.push(`<button class="live-delete-btn" type="button" data-id="${s.id}" title="Delete${s.recording_path ? ' (also removes the saved recording)' : ''}">✕ Delete</button>`);
+    return `
+      <div class="live-session-row">
+        <span><span class="status-pill ${s.status}">${STATUS_LABEL[s.status] || s.status}</span> ${s.title}</span>
+        <span class="links">${links.join('')}</span>
+      </div>`;
+  }
+
+  async function editLiveSession(id){
+    const current = liveSessionsCache.find(s => String(s.id) === String(id));
+    const newTitle = prompt('Session title:', current ? current.title : '');
+    if (newTitle === null || !newTitle.trim()) return;
+    const res = await fetch(`/api/live/sessions/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle.trim() })
+    });
+    if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || 'Could not update that session.'); return; }
+    await loadLiveSessionsAdmin();
+    await loadLiveNow();
+  }
+
+  async function deleteLiveSession(id){
+    const current = liveSessionsCache.find(s => String(s.id) === String(id));
+    const warning = current && current.recording_path
+      ? `Delete "${current.title}"? This also permanently removes its saved recording.`
+      : `Delete "${current ? current.title : 'this session'}"?`;
+    if (!confirm(warning)) return;
+    const res = await fetch(`/api/live/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+    if (!res.ok) { alert('Could not delete that session.'); return; }
+    await loadLiveSessionsAdmin();
+    await loadLiveNow();
+  }
+
+  async function loadLiveSessionsAdmin(){
+    if (!isAdmin) return;
+    try {
+      const res = await fetch('/api/live/sessions');
+      const sessions = res.ok ? await res.json() : [];
+      liveSessionsCache = Array.isArray(sessions) ? sessions : [];
+    } catch (e) {
+      liveSessionsCache = [];
+    }
+    liveSessionsList.innerHTML = liveSessionsCache.length
+      ? liveSessionsCache.map(renderLiveSessionRow).join('')
+      : `<p class="live-empty">No live sessions yet — create one above when you're ready to go live.</p>`;
+    liveSessionsList.querySelectorAll('.live-edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => editLiveSession(btn.dataset.id));
+    });
+    liveSessionsList.querySelectorAll('.live-delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => deleteLiveSession(btn.dataset.id));
+    });
+  }
 
   async function loadLiveNow(){
     try {
@@ -1239,6 +1359,7 @@
     renderList();
     loadProductsFromServer();
     loadApparelFromServer();
+    loadLiveSessionsAdmin();
   }
 
   function openLogin(){

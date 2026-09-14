@@ -134,6 +134,32 @@ def get_live_session_by_room(room_code):
     return row
 
 
+def get_live_session(session_id):
+    conn = get_db()
+    row = conn.execute("SELECT * FROM live_sessions WHERE id = ?", (session_id,)).fetchone()
+    conn.close()
+    return row
+
+
+def update_live_session(session_id, title=None, host_name=None):
+    conn = get_db()
+    if title is not None:
+        conn.execute("UPDATE live_sessions SET title = ? WHERE id = ?", (title, session_id))
+    if host_name is not None:
+        conn.execute("UPDATE live_sessions SET host_name = ? WHERE id = ?", (host_name, session_id))
+    conn.commit()
+    conn.close()
+
+
+def delete_live_session(session_id):
+    conn = get_db()
+    conn.execute("DELETE FROM chat_messages WHERE live_session_id = ?", (session_id,))
+    conn.execute("DELETE FROM camera_requests WHERE live_session_id = ?", (session_id,))
+    conn.execute("DELETE FROM live_sessions WHERE id = ?", (session_id,))
+    conn.commit()
+    conn.close()
+
+
 def list_live_sessions(status=None):
     conn = get_db()
     if status:
@@ -551,6 +577,34 @@ def delete_track(track_id):
     return jsonify({"ok": True})
 
 
+@app.patch("/api/tracks/<track_id>")
+@login_required
+def edit_track(track_id):
+    conn = get_db()
+    row = conn.execute("SELECT id FROM tracks WHERE id = ? AND active = 1", (track_id,)).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"error": "Track not found."}), 404
+    data = request.get_json(silent=True) or {}
+    fields, values = [], []
+    for key in ("title", "artist"):
+        if key in data:
+            value = (data.get(key) or "").strip()
+            if not value:
+                conn.close()
+                return jsonify({"error": f"{key} cannot be empty."}), 400
+            fields.append(f"{key} = ?")
+            values.append(value)
+    if not fields:
+        conn.close()
+        return jsonify({"error": "Nothing to update."}), 400
+    values.append(track_id)
+    conn.execute(f"UPDATE tracks SET {', '.join(fields)} WHERE id = ?", values)
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
+
+
 def _delete_video_file_if_unreferenced(src):
     conn = get_db()
     still_used = conn.execute(
@@ -756,6 +810,46 @@ def api_create_live_session():
     host_name = (data.get("host_name") or session.get("username") or "Kingdom Stores").strip()
     session_id, room_code = create_live_session(title, host_name)
     return jsonify({"ok": True, "id": session_id, "room_code": room_code})
+
+
+@app.patch("/api/live/sessions/<int:session_id>")
+@login_required
+def api_edit_live_session(session_id):
+    live_session = get_live_session(session_id)
+    if not live_session:
+        return jsonify({"error": "Live session not found."}), 404
+    data = request.get_json(silent=True) or {}
+    title = data.get("title")
+    host_name = data.get("host_name")
+    if title is not None:
+        title = title.strip()
+        if not title:
+            return jsonify({"error": "Session title is required."}), 400
+    if host_name is not None:
+        host_name = host_name.strip()
+    update_live_session(session_id, title=title, host_name=host_name)
+    return jsonify({"ok": True})
+
+
+@app.delete("/api/live/sessions/<int:session_id>")
+@login_required
+def api_delete_live_session(session_id):
+    live_session = get_live_session(session_id)
+    if not live_session:
+        return jsonify({"error": "Live session not found."}), 404
+    # A saved recording's file is unique to this session (never shared, unlike
+    # uploaded tracks) -- safe to remove from disk unconditionally once the
+    # session row referencing it is gone.
+    if live_session["recording_path"] and live_session["recording_path"].startswith("videos/"):
+        filename = live_session["recording_path"].split("/", 1)[-1]
+        path = VIDEOS_DIR / filename
+        try:
+            if path.is_file():
+                path.unlink()
+        except OSError:
+            pass
+    delete_live_session(session_id)
+    return jsonify({"ok": True})
 
 
 # ---- products API -----------------------------------------------------------------
