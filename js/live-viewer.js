@@ -21,6 +21,7 @@
   const nameSubmit = document.getElementById("name-submit");
   const statusBadge = document.getElementById("status-badge");
   const switchCameraBtn = document.getElementById("switch-camera-btn");
+  const waitingOverlay = document.getElementById("waiting-overlay");
 
   let myName = sessionStorage.getItem("ks_viewer_name") || "";
   let broadcastPc = null;
@@ -29,6 +30,39 @@
   let localGuestStream = null;
   let guestFacingMode = "user";
   let pendingGuestIce = []; // ICE candidates generated before we learn the host's sid
+  let connectionWatchdog = null; // see startConnectionWatchdog() below
+
+  // The overlay text used to only ever get RE-SHOWN (never updated or cleared)
+  // outside of ontrack firing, so a viewer could see the badge correctly say
+  // LIVE while the video area was stuck on stale "waiting for host" text --
+  // and if WebRTC never connected (no TURN server configured, so anyone
+  // behind a restrictive NAT can fail silently), there was zero feedback,
+  // forever. setOverlay/hideOverlay + the watchdog below fix both.
+  function setOverlay(text, opts) {
+    if (!waitingOverlay) return;
+    waitingOverlay.textContent = text;
+    waitingOverlay.classList.toggle("error", !!(opts && opts.error));
+    waitingOverlay.classList.remove("hidden");
+  }
+  function hideOverlay() {
+    if (!waitingOverlay) return;
+    waitingOverlay.classList.add("hidden");
+  }
+  function clearConnectionWatchdog() {
+    if (connectionWatchdog) { clearTimeout(connectionWatchdog); connectionWatchdog = null; }
+  }
+  // If we haven't received actual video frames (ontrack) within ~15s of
+  // expecting a live broadcast -- whether because ICE outright failed or
+  // it's just stuck in "checking"/"connecting" -- stop leaving the viewer
+  // staring at silent unchanging text and tell them something's wrong.
+  function startConnectionWatchdog() {
+    clearConnectionWatchdog();
+    connectionWatchdog = setTimeout(() => {
+      if (!hostVideo.srcObject) {
+        setOverlay("Having trouble connecting to the stream — try refreshing.", { error: true });
+      }
+    }, 15000);
+  }
 
   function escapeHtml(s) {
     return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -68,19 +102,48 @@
   socket.on("live_status", (data) => {
     statusBadge.textContent = data.status.toUpperCase();
     statusBadge.className = "status-badge " + data.status;
+    if (data.status === "live") {
+      setOverlay("Host is live — connecting video…");
+      startConnectionWatchdog();
+    } else if (data.status === "ended") {
+      clearConnectionWatchdog();
+      setOverlay("This broadcast has ended.");
+    } else {
+      clearConnectionWatchdog();
+      setOverlay("Waiting for the host to go live…");
+    }
   });
+
+  // If the room was already live when this page loaded, we won't get a
+  // live_status event at all (the server only emits it on the go-live/end
+  // transition, not to newly-joined sockets) -- so start the watchdog here
+  // too, from the status baked into the initial render.
+  if (window.LIVE_STATUS === "live") startConnectionWatchdog();
 
   // ---------------- Receiving the host's broadcast ----------------
   socket.on("webrtc_signal", (data) => {
     if (data.kind === "broadcast" && data.type === "offer") {
       hostSid = data.from;
       broadcastPc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
-      broadcastPc.ontrack = (e) => { hostVideo.srcObject = e.streams[0]; };
+      broadcastPc.ontrack = (e) => {
+        hostVideo.srcObject = e.streams[0];
+        hideOverlay();
+        clearConnectionWatchdog();
+      };
       broadcastPc.onicecandidate = (e) => {
         if (e.candidate) {
           socket.emit("webrtc_signal", { to: hostSid, kind: "broadcast", type: "ice", candidate: e.candidate });
         }
       };
+      // Belt-and-suspenders on top of the 15s watchdog: an explicit "failed"
+      // ICE state is a stronger signal than a timeout and can fire sooner.
+      broadcastPc.oniceconnectionstatechange = () => {
+        if (broadcastPc.iceConnectionState === "failed" && !hostVideo.srcObject) {
+          clearConnectionWatchdog();
+          setOverlay("Having trouble connecting to the stream — try refreshing.", { error: true });
+        }
+      };
+      startConnectionWatchdog();
       broadcastPc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(() => {
         return broadcastPc.createAnswer();
       }).then((answer) => {

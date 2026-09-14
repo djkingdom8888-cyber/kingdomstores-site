@@ -13,6 +13,7 @@
       <div>
         <div class="live-stage">
           <video id="host-video" autoplay playsinline></video>
+          <div id="waiting-overlay" class="waiting-overlay">{% if live_session['status'] == 'live' %}Host is live — connecting video…{% elif live_session['status'] == 'ended' %}This broadcast has ended.{% else %}Waiting for the host to go live…{% endif %}</div>
         </div>
 
         <div id="join-camera-box" style="margin-top:16px;">
