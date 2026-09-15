@@ -367,6 +367,13 @@ def init_db():
     conn.commit()
     _migrate_products_price_cents(conn)
 
+    # Safe idempotent migration: apparel predates having a description field,
+    # so existing databases need it added rather than recreated.
+    existing_apparel_cols = {row["name"] for row in conn.execute("PRAGMA table_info(apparel)").fetchall()}
+    if "description" not in existing_apparel_cols:
+        conn.execute("ALTER TABLE apparel ADD COLUMN description TEXT NOT NULL DEFAULT ''")
+        conn.commit()
+
     if fresh:
         conn.executemany(
             "INSERT INTO tracks (id, title, artist, len, seconds, src, sort_order) VALUES (?,?,?,?,?,?,?)",
@@ -919,17 +926,48 @@ def add_apparel():
     cents = parse_price_to_cents(data.get("price", "0"))
     if cents is None:
         return jsonify({"error": "Enter a valid, non-negative price."}), 400
+    description = (data.get("description") or "").strip()
 
     conn = get_db()
     next_order = (conn.execute("SELECT COALESCE(MAX(sort_order),0)+1 FROM apparel").fetchone()[0])
     new_id = f"{category}-{secrets.token_hex(4)}"
     conn.execute(
-        "INSERT INTO apparel (id, name, category, price, price_cents, image_path, sort_order) VALUES (?,?,?,?,?,?,?)",
-        (new_id, name, category, f"${cents / 100:,.2f}", cents, image_path, next_order),
+        "INSERT INTO apparel (id, name, category, price, price_cents, image_path, sort_order, description) VALUES (?,?,?,?,?,?,?,?)",
+        (new_id, name, category, f"${cents / 100:,.2f}", cents, image_path, next_order, description),
     )
     conn.commit()
     conn.close()
     return jsonify({"ok": True, "id": new_id})
+
+
+@app.patch("/api/apparel/<item_id>")
+@login_required
+def edit_apparel(item_id):
+    conn = get_db()
+    row = conn.execute("SELECT id FROM apparel WHERE id = ? AND active = 1", (item_id,)).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"error": "Item not found."}), 404
+    data = request.get_json(silent=True) or {}
+    fields, values = [], []
+    if "name" in data:
+        name = (data.get("name") or "").strip()
+        if not name:
+            conn.close()
+            return jsonify({"error": "name cannot be empty."}), 400
+        fields.append("name = ?")
+        values.append(name)
+    if "description" in data:
+        fields.append("description = ?")
+        values.append((data.get("description") or "").strip())
+    if not fields:
+        conn.close()
+        return jsonify({"error": "Nothing to update."}), 400
+    values.append(item_id)
+    conn.execute(f"UPDATE apparel SET {', '.join(fields)} WHERE id = ?", values)
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
 
 
 @app.delete("/api/apparel/<item_id>")

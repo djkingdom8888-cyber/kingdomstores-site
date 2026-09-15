@@ -234,6 +234,39 @@
   .price-cancel-btn{color:#999;}
   .price-cancel-btn:hover{border-color:#666; color:#333;}
 
+  /* Product quick-view: clicking a card scales it briefly, then opens details */
+  .apparel-card{cursor:pointer; transition:transform 0.18s ease;}
+  .apparel-card.pop{transform:scale(1.06); z-index:2;}
+  .quick-view-overlay{
+    display:none; position:fixed; inset:0; background:rgba(10,10,10,0.82); z-index:1000;
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .quick-view-overlay.open{display:flex;}
+  .quick-view-box{
+    background:var(--white); border:2px solid var(--black); width:100%; max-width:560px; max-height:90vh;
+    overflow-y:auto; display:flex; flex-wrap:wrap; position:relative;
+    animation:quickViewIn 0.2s ease;
+  }
+  @keyframes quickViewIn{from{transform:scale(0.94); opacity:0;} to{transform:scale(1); opacity:1;}}
+  .quick-view-close{
+    position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%;
+    background:var(--black); border:2px solid var(--white); color:var(--white); cursor:pointer; font-size:13px; z-index:2;
+  }
+  .quick-view-close:hover{background:var(--red); border-color:var(--red);}
+  .quick-view-media{flex:1 1 240px; background:var(--gray);}
+  .quick-view-media img{width:100%; height:100%; min-height:260px; object-fit:cover; display:block;}
+  .quick-view-info{flex:1 1 260px; padding:28px; display:flex; flex-direction:column;}
+  .quick-view-info h3{font-family:'Bebas Neue', sans-serif; color:var(--black); font-size:28px; letter-spacing:0.5px; margin-bottom:10px;}
+  .quick-view-price{color:var(--red); font-size:20px; font-weight:800; margin-bottom:16px;}
+  .quick-view-desc{color:var(--text-gray); font-size:13px; line-height:1.6; margin-bottom:16px; flex:1;}
+  .quick-view-desc:empty::before{content:'No description yet.'; color:#aaa; font-style:italic;}
+  .quick-view-edit-desc{
+    display:none; background:transparent; border:1px solid #999; color:#666; font-size:11px;
+    text-transform:uppercase; letter-spacing:0.5px; padding:8px; cursor:pointer; margin-bottom:12px; font-family:'Inter';
+  }
+  .quick-view-edit-desc:hover{border-color:var(--red); color:var(--red);}
+  .quick-view-buy{padding:14px; font-size:12px;}
+
   /* Custom apparel banner */
   .custom-banner{
     background:var(--red); color:var(--white);
@@ -681,6 +714,20 @@
       <div class="admin-login-actions">
         <button id="loginCancelBtn" class="btn btn-outline" type="button" style="color:#fff; border-color:#444;">CANCEL</button>
         <button id="loginSubmitBtn" class="btn btn-red" type="button">LOG IN</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-view-overlay" id="quickViewOverlay">
+    <div class="quick-view-box">
+      <button class="quick-view-close" id="quickViewClose" type="button" title="Close">✕</button>
+      <div class="quick-view-media"><img id="quickViewImg" src="" alt=""></div>
+      <div class="quick-view-info">
+        <h3 id="quickViewName"></h3>
+        <div class="quick-view-price" id="quickViewPrice"></div>
+        <p class="quick-view-desc" id="quickViewDesc"></p>
+        <button class="quick-view-edit-desc" id="quickViewEditDesc" type="button">✎ Edit description</button>
+        <button class="btn btn-red quick-view-buy" id="quickViewBuy" type="button">BUY</button>
       </div>
     </div>
   </div>
@@ -1169,9 +1216,12 @@
       </div>`;
   }
 
+  let apparelCache = [];
+
   async function loadApparelFromServer(){
     const res = await fetch('/api/apparel');
     const items = res.ok ? await res.json() : [];
+    apparelCache = items;
     if (!items.length) {
       apparelGroups.innerHTML = `<p style="color:#666; font-size:13px;">No apparel listed yet.</p>`;
       return;
@@ -1197,28 +1247,86 @@
       });
     });
     apparelGroups.querySelectorAll('.buy-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const original = btn.textContent;
-        btn.textContent = '...'; btn.disabled = true;
-        const res2 = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: [btn.dataset.productId] })
-        });
-        const data = await res2.json().catch(() => ({}));
-        if (res2.status === 501) {
-          alert(data.error || "Checkout isn't live yet.");
-        } else if (!res2.ok) {
-          alert(data.error || 'Checkout failed — try again.');
-        } else if (data.url) {
-          window.location.href = data.url;
-          return;
-        }
-        btn.textContent = original; btn.disabled = false;
+      btn.addEventListener('click', (e) => { e.stopPropagation(); checkoutApparel(btn.dataset.productId, btn); });
+    });
+    apparelGroups.querySelectorAll('.apparel-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return; // delete/edit/buy handle themselves
+        openQuickView(card.dataset.apparelId, card);
       });
     });
     wirePriceEdits(apparelGroups);
   }
+
+  async function checkoutApparel(productId, btn){
+    const original = btn.textContent;
+    btn.textContent = '...'; btn.disabled = true;
+    const res2 = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [productId] })
+    });
+    const data = await res2.json().catch(() => ({}));
+    if (res2.status === 501) {
+      alert(data.error || "Checkout isn't live yet.");
+    } else if (!res2.ok) {
+      alert(data.error || 'Checkout failed — try again.');
+    } else if (data.url) {
+      window.location.href = data.url;
+      return;
+    }
+    btn.textContent = original; btn.disabled = false;
+  }
+
+  // ---------------- Product quick-view ----------------
+  const quickViewOverlay = document.getElementById('quickViewOverlay');
+  const quickViewImg = document.getElementById('quickViewImg');
+  const quickViewName = document.getElementById('quickViewName');
+  const quickViewPrice = document.getElementById('quickViewPrice');
+  const quickViewDesc = document.getElementById('quickViewDesc');
+  const quickViewEditDesc = document.getElementById('quickViewEditDesc');
+  const quickViewBuy = document.getElementById('quickViewBuy');
+  const quickViewClose = document.getElementById('quickViewClose');
+  let quickViewItem = null;
+
+  function openQuickView(itemId, cardEl){
+    const item = apparelCache.find(a => a.id === itemId);
+    if (!item) return;
+    quickViewItem = item;
+    if (cardEl) {
+      cardEl.classList.add('pop');
+      setTimeout(() => cardEl.classList.remove('pop'), 220);
+    }
+    quickViewImg.src = item.image_path;
+    quickViewImg.alt = item.name;
+    quickViewName.textContent = item.name;
+    quickViewPrice.textContent = item.price;
+    quickViewDesc.textContent = item.description || '';
+    quickViewEditDesc.style.display = isAdmin ? 'block' : 'none';
+    quickViewBuy.dataset.productId = item.id;
+    quickViewOverlay.classList.add('open');
+  }
+
+  function closeQuickView(){ quickViewOverlay.classList.remove('open'); }
+  quickViewClose.addEventListener('click', closeQuickView);
+  quickViewOverlay.addEventListener('click', (e) => { if (e.target === quickViewOverlay) closeQuickView(); });
+  quickViewBuy.addEventListener('click', () => checkoutApparel(quickViewBuy.dataset.productId, quickViewBuy));
+  quickViewEditDesc.addEventListener('click', async () => {
+    if (!quickViewItem) return;
+    const newDesc = prompt('Description:', quickViewItem.description || '');
+    if (newDesc === null) return;
+    const res = await fetch(`/api/apparel/${encodeURIComponent(quickViewItem.id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: newDesc.trim() })
+    });
+    if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+    if (!res.ok) { alert('Could not update the description.'); return; }
+    quickViewItem.description = newDesc.trim();
+    quickViewDesc.textContent = quickViewItem.description;
+    const cached = apparelCache.find(a => a.id === quickViewItem.id);
+    if (cached) cached.description = quickViewItem.description;
+  });
 
   // ---- Kingdom Live (sibling of the tracks/video feature above) ----
   const liveSection = document.getElementById('live');
