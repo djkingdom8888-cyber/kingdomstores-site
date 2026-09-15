@@ -31,6 +31,21 @@
   let guestFacingMode = "user";
   let pendingGuestIce = []; // ICE candidates generated before we learn the host's sid
   let connectionWatchdog = null; // see startConnectionWatchdog() below
+  // True from the moment a camera-join request is sent until it's approved
+  // or declined. Real bug this fixes: Socket.IO gives you a brand new sid on
+  // every reconnect (screen lock, app backgrounding, a network blip -- all
+  // routine on mobile), but the server stores the REQUESTING sid once, at
+  // request time, in camera_requests.socket_id. If the socket reconnects
+  // before the host clicks Approve, the eventual camera_response gets sent
+  // to a socket that no longer exists -- the request silently goes nowhere,
+  // with nothing on screen ever indicating why. Same problem hits the guest
+  // RTCPeerConnection's signaling (ICE candidates are routed by sid too), so
+  // even an already-progressing connection breaks the moment the socket
+  // reconnects mid-handshake. This was previously not handled at all: this
+  // page had no socket.on("connect") handler, so after any reconnect it
+  // silently stopped being in the room too (no more chat/live_status).
+  let awaitingCameraApproval = false;
+  let hasConnectedBefore = false;
 
   // The overlay text used to only ever get RE-SHOWN (never updated or cleared)
   // outside of ontrack firing, so a viewer could see the badge correctly say
@@ -92,6 +107,24 @@
     };
     nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") nameSubmit.click(); });
   }
+
+  // socket.io-client reconnects automatically after a drop, but a reconnect
+  // is a NEW socket with a NEW sid on the server -- nothing about being "in"
+  // the room or an in-flight request survives that on its own. Re-join on
+  // every connection (first one included, harmlessly redundant with the
+  // block above) and, if a camera-join request was in flight, redo it from
+  // scratch so it's addressed to the server correctly this time.
+  socket.on("connect", () => {
+    if (!hasConnectedBefore) { hasConnectedBefore = true; return; }
+    if (myName) joinRoom();
+    if (awaitingCameraApproval && localGuestStream) {
+      cameraStatus.textContent = "Reconnected — resending your camera request…";
+      if (guestPc) { try { guestPc.close(); } catch (e) { /* already closed */ } guestPc = null; }
+      hostSid = null;
+      pendingGuestIce = [];
+      startGuestConnection();
+    }
+  });
 
   socket.on("chat_history", (data) => {
     chatMessages.innerHTML = "";
@@ -181,10 +214,12 @@
       return;
     }
     cameraStatus.textContent = "Connecting so the host can preview you…";
+    awaitingCameraApproval = true;
     startGuestConnection();
   };
 
   socket.on("camera_response", (data) => {
+    awaitingCameraApproval = false;
     if (!data.approve) {
       cameraStatus.textContent = "The host declined your request to join.";
       requestBtn.disabled = false;
