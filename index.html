@@ -43,6 +43,27 @@
   }
   .announce span.accent{color:var(--red);}
 
+  /* Scrolling announcement strip (admin-editable) — pure CSS translateX loop, two
+     copies of the same text back-to-back so the loop reads seamlessly. */
+  .marquee{
+    background:var(--red); color:var(--white); overflow:hidden; position:relative;
+    padding:11px 0; white-space:nowrap;
+  }
+  .marquee-track{display:inline-flex; width:max-content; animation:marqueeScroll 26s linear infinite;}
+  .marquee:hover .marquee-track{animation-play-state:paused;}
+  .marquee-item{
+    font-family:'Inter'; font-size:12.5px; font-weight:800; letter-spacing:1px;
+    text-transform:uppercase; padding:0 28px; display:inline-block;
+  }
+  @keyframes marqueeScroll{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+  .marquee-edit-btn{
+    display:none; position:absolute; top:6px; right:10px; width:24px; height:24px; border-radius:50%;
+    background:var(--black); color:var(--white); border:1px solid var(--white); cursor:pointer; font-size:11px;
+    align-items:center; justify-content:center; z-index:2;
+  }
+  .marquee-edit-btn:hover{background:var(--white); color:var(--black);}
+  body.admin-mode .marquee-edit-btn{display:flex;}
+
   .trust-bar{
     background:var(--red);
     color:var(--white);
@@ -128,6 +149,26 @@
       linear-gradient(135deg, #1a1a1a, var(--black));
     display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
   }
+  /* Video-intro hero: a real <video> fills this pane once a loop file exists at
+     videos/hero-loop.mp4; until then .hero-visual-fallback (the original word-mark
+     art) stays visible so there's no broken/empty media placeholder. */
+  .hero-video{
+    display:none; position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; z-index:0;
+  }
+  .hero-video.has-source{display:block;}
+  .hero-visual-fallback{
+    position:relative; width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .hero-video.has-source ~ .hero-visual-fallback{display:none;}
+  .video-placeholder-note{
+    position:absolute; top:18px; left:18px; right:18px; z-index:3;
+    background:rgba(10,10,10,0.75); border:1px dashed var(--red); color:var(--white);
+    font-family:'Inter'; font-size:11px; letter-spacing:0.3px; line-height:1.5;
+    padding:10px 12px; border-radius:2px;
+  }
+  .video-placeholder-note code{color:var(--red); font-weight:600;}
   .hero-visual .word{
     font-family:'Bebas Neue', sans-serif; color:var(--white); font-size:90px; text-align:center; line-height:0.9;
     text-transform:uppercase;
@@ -137,7 +178,7 @@
     content:"CUSTOM";
     position:absolute; bottom:24px; right:24px;
     font-family:'Bebas Neue'; color:var(--red); font-size:14px; letter-spacing:3px;
-    border:2px solid var(--red); padding:6px 14px;
+    border:2px solid var(--red); padding:6px 14px; z-index:2;
   }
 
   /* Section headers */
@@ -191,14 +232,16 @@
   .bg1 .tee-graphic, .bg2 .tee-graphic, .bg4 .tee-graphic{color:var(--white);}
   .bg3 .tee-graphic{color:var(--black);}
 
-  /* Real-photo apparel catalog, grouped by category */
-  .apparel-group{margin-bottom:48px;}
-  .apparel-group:last-child{margin-bottom:0;}
-  .apparel-group > h3{
-    font-size:14px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
-    margin-bottom:18px; padding-bottom:8px; border-bottom:2px solid var(--black); font-family:'Inter';
-    color:var(--black);
+  /* Real-photo apparel catalog. The category tiles below act as tabs; each one
+     has a matching .apparel-group panel that spills open directly beneath the
+     tile row. Only one panel is ever "open" (true tab behaviour, not an
+     accordion). */
+  .apparel-group{margin-bottom:0;}
+  .apparel-group > .grid{
+    overflow:hidden; max-height:0; opacity:0; transition:max-height 0.3s ease, opacity 0.2s ease, margin 0.3s ease;
+    margin-top:0;
   }
+  .apparel-group.open > .grid{max-height:4000px; opacity:1; margin-top:0;}
   .apparel-card{position:relative;}
   .apparel-card .thumb{
     aspect-ratio:4/5; background:var(--gray); overflow:hidden; margin-bottom:12px; border:1px solid var(--line);
@@ -212,6 +255,62 @@
   }
   #apparelGroups.admin-mode .apparel-delete{display:flex;}
   .apparel-delete:hover{background:var(--white); color:var(--red);}
+
+  /* Category photo tiles — a "best shot" per category (Hoodies/T-Shirts/Hats)
+     that act as tabs. Clicking one marks it active and spills its catalogue
+     panel open directly beneath the tile row (.apparel-group above, see rules
+     above) -- no scrolling to a separate section elsewhere. */
+  .apparel-cat-tiles{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:24px;}
+  .apparel-cat-tile{
+    position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden;
+    border:2px solid var(--line); background:var(--gray); cursor:pointer; padding:0;
+    transition:border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .apparel-cat-tile.active{border-color:var(--red); box-shadow:0 0 0 2px var(--red) inset;}
+  .apparel-cat-tile img{width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.4s ease;}
+  .apparel-cat-tile:hover img{transform:scale(1.05);}
+  .apparel-cat-tile .scrim{
+    position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(10,10,10,0) 45%, rgba(10,10,10,0.88) 100%);
+  }
+  .apparel-cat-tile .tile-label{
+    position:absolute; left:16px; right:16px; bottom:14px; text-align:left; pointer-events:none;
+  }
+  .apparel-cat-tile .tile-label .name{
+    display:block; font-family:'Bebas Neue', sans-serif; font-weight:400; font-size:24px;
+    color:var(--white); letter-spacing:0.5px; text-transform:uppercase;
+  }
+  .apparel-cat-tile .tile-label .num{
+    display:block; font-family:'Inter'; font-weight:700; font-size:11px; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--white); opacity:0.75; margin-top:4px;
+  }
+
+  /* Admin "Add Item" panel — a real upload flow (photo file picker + optional AI
+     name/description suggestion) feeding straight into POST /api/apparel, using
+     the same dark-admin-panel accent pattern already used in the music section
+     (.upload-add), adapted for the light #shop background. */
+  .apparel-add-panel{display:none; background:var(--gray); border:1px solid var(--line); padding:22px 24px; margin-bottom:32px;}
+  #shop.admin-mode .apparel-add-panel{display:block;}
+  .apparel-add-panel h4{font-family:'Inter'; font-size:12px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:var(--red); margin-bottom:14px;}
+  .apparel-add-form{display:flex; flex-direction:column; gap:12px; max-width:480px;}
+  .apparel-add-form select, .apparel-add-form input[type="text"], .apparel-add-form textarea{
+    background:var(--white); border:1px solid var(--line); color:var(--black); padding:11px 12px;
+    font-size:13px; font-family:'Inter'; border-radius:2px;
+  }
+  .apparel-add-form textarea{min-height:70px; resize:vertical;}
+  .apparel-add-row{display:flex; gap:12px; flex-wrap:wrap;}
+  .apparel-add-row select{flex:0 0 140px;}
+  .apparel-add-row .upload-file-label{flex:1; min-width:200px; background:var(--white); border:1px dashed var(--line); color:var(--text-gray);}
+  .apparel-add-row .upload-file-label:hover{border-color:var(--red); color:var(--black);}
+  .apparel-add-preview{display:none; align-items:flex-start; gap:14px; margin-top:4px;}
+  .apparel-add-preview.show{display:flex;}
+  .apparel-add-preview img{width:96px; height:120px; object-fit:cover; border:1px solid var(--line);}
+  .ai-suggest-btn{align-self:flex-start; padding:10px 16px; font-size:11px;}
+  .ai-note{font-size:11px; color:var(--text-gray); font-style:italic; max-width:220px; line-height:1.4;}
+  .apparel-add-form > .btn{align-self:flex-start; margin-top:4px;}
+  .apparel-add-msg{font-size:12px; font-weight:700; min-height:16px;}
+  .apparel-add-msg.error{color:var(--red);}
+  .apparel-add-msg.success{color:var(--black);}
 
   /* Inline price editing (admin only) */
   .price-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
@@ -584,10 +683,25 @@
         <a href="#custom" class="btn btn-outline">CUSTOMIZE YOURS</a>
       </div>
     </div>
-    <div class="hero-visual">
-      <div class="word">KINGDOM<br><span class="red">STORES.</span></div>
+    <div class="hero-visual" id="heroVisual">
+      <!-- Hero loop video: videos/hero-loop.mp4 (H.264/AAC, 540x960, ~84s, ~51MB,
+           compressed/converted from the source .MOV supplied by the site owner). -->
+      <video id="heroVideo" class="hero-video" muted loop playsinline autoplay aria-hidden="true">
+        <source src="videos/hero-loop.mp4" type="video/mp4">
+      </video>
+      <div class="hero-visual-fallback" id="heroVisualFallback">
+        <div class="word">KINGDOM<br><span class="red">STORES.</span></div>
+      </div>
     </div>
   </section>
+
+  <div class="marquee" id="marqueeStrip">
+    <div class="marquee-track" id="marqueeTrack">
+      <span class="marquee-item" id="marqueeText1">Loading…</span>
+      <span class="marquee-item" id="marqueeText2" aria-hidden="true">Loading…</span>
+    </div>
+    <button class="marquee-edit-btn" id="marqueeEditBtn" type="button" title="Edit announcement text">✎</button>
+  </div>
 
   <section class="verse-strip">
     <p class="verse">"BE STRONG AND COURAGEOUS. DO NOT BE <span class="red">AFRAID</span>." <br>JOSHUA 1:9</p>
@@ -600,6 +714,38 @@
         <h2>Shop Apparel</h2>
         <button id="apparelAdminToggle" class="admin-toggle" type="button">🔒 ADMIN MODE</button>
       </div>
+
+      <div class="apparel-add-panel" id="apparelAddPanel">
+        <h4>Add New Item</h4>
+        <div class="apparel-add-form">
+          <div class="apparel-add-row">
+            <select id="addCategory">
+              <option value="tshirt">T-Shirt</option>
+              <option value="hoodie">Hoodie</option>
+              <option value="hat">Hat</option>
+            </select>
+            <label class="upload-file-label">
+              <input type="file" id="addImageFile" accept="image/jpeg,image/png,image/webp,image/gif">
+              <span id="addImageFileName">Choose a product photo…</span>
+            </label>
+          </div>
+          <div class="apparel-add-preview" id="addImagePreviewWrap">
+            <img id="addImagePreview" src="" alt="Preview">
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <button class="btn btn-outline ai-suggest-btn" id="addSuggestBtn" type="button" style="display:none;">✨ Suggest with AI</button>
+              <span class="ai-note" id="addAiNote" style="display:none;"></span>
+            </div>
+          </div>
+          <input type="text" id="addName" placeholder="Product name">
+          <input type="text" id="addPrice" placeholder="Price (e.g. 42.00)">
+          <textarea id="addDescription" placeholder="Description (optional — editable anytime after listing too)"></textarea>
+          <button class="btn btn-red" id="addItemSubmitBtn" type="button">ADD ITEM</button>
+          <div class="apparel-add-msg" id="addItemMsg"></div>
+        </div>
+      </div>
+
+      <div class="apparel-cat-tiles" id="apparelCatTiles"></div>
+
       <div id="apparelGroups">
         <p style="color:#666; font-size:13px;">Loading apparel…</p>
       </div>
@@ -623,6 +769,7 @@
       <div class="section-head">
         <h2>Kingdom Sound — Music &amp; Videos</h2>
         <div style="display:flex; align-items:center; gap:18px;">
+          <a href="/admin/analytics" id="analyticsLink" class="view-all" style="display:none;">📊 Analytics</a>
           <button id="adminToggle" class="admin-toggle" type="button">🔒 ADMIN MODE</button>
           <a href="#" class="view-all">View All →</a>
         </div>
@@ -831,6 +978,16 @@
 
   const PLATFORM_LABEL = { youtube: 'YT', tiktok: 'TT', apple: 'AM' };
 
+  // Fire-and-forget analytics beacon. Never blocks the UI and never surfaces
+  // errors to the visitor -- if this fails (e.g. ad blocker), the site just
+  // works normally without that one data point.
+  function logAnalyticsEvent(eventType, itemId, itemLabel){
+    fetch('/api/analytics/event', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type: eventType, item_id: itemId || '', item_label: itemLabel || '' })
+    }).catch(() => {});
+  }
+
   function isEmbedTrack(t){ return t.type === 'youtube' || t.type === 'tiktok' || t.type === 'apple'; }
   function isLocalVideo(t){ return t.type === 'video'; }
 
@@ -932,6 +1089,7 @@
     title.textContent = t.title;
     artist.textContent = t.artist;
     renderList();
+    logAnalyticsEvent('track_play', t.id, t.title);
 
     const embed = isEmbedTrack(t);
     const localVideo = isLocalVideo(t);
@@ -1177,6 +1335,8 @@
       btn.addEventListener('click', async () => {
         const original = btn.textContent;
         btn.textContent = '...'; btn.disabled = true;
+        const productName = btn.closest('.track-card')?.querySelector('.name')?.textContent || '';
+        logAnalyticsEvent('checkout_start', btn.dataset.productId, productName);
         const res2 = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1199,6 +1359,7 @@
 
   // ---- Apparel catalog (real photos), grouped by category ----
   const apparelGroups = document.getElementById('apparelGroups');
+  const apparelCatTiles = document.getElementById('apparelCatTiles');
   const CATEGORY_LABEL = { tshirt: 'T-Shirts', hoodie: 'Hoodies', hat: 'Hats' };
   const CATEGORY_ORDER = ['hoodie', 'tshirt', 'hat'];
 
@@ -1218,20 +1379,82 @@
 
   let apparelCache = [];
 
+  // Category tiles double as tabs: tracks which single category's panel is
+  // currently spilled open beneath the tile row. True tab behaviour -- only
+  // one category open at a time, matching "click a tile, its catalogue spills
+  // out right there" rather than an accordion where several sections could
+  // stack open at once. Persists across re-renders (e.g. after adding/deleting
+  // an item). Defaults to the first category present so the panel isn't empty
+  // on first load.
+  let activeApparelCategory = null;
+
+  // Opens the given category's panel (closing whichever one was open) and
+  // syncs the active/highlighted state on the matching tile. Shared by the
+  // tile click handler and by post-add/-delete refreshes.
+  function setActiveApparelCategory(cat){
+    activeApparelCategory = cat;
+    apparelCatTiles.querySelectorAll('.apparel-cat-tile').forEach(t => {
+      t.classList.toggle('active', t.dataset.cat === cat);
+    });
+    apparelGroups.querySelectorAll('.apparel-group').forEach(g => {
+      g.classList.toggle('open', g.dataset.cat === cat);
+    });
+  }
+
+  // Category photo tiles above the catalogue panel: one "best shot" per
+  // present category, acting as tab triggers. Selection rule -- the first
+  // *active* item in that category in API order (which the backend returns
+  // sorted by sort_order ascending), i.e. byCategory[cat][0] — the same
+  // ordering the panel grid below already renders in.
+  function renderApparelCategoryTiles(byCategory, presentCats){
+    if (!apparelCatTiles) return;
+    if (!presentCats.length) { apparelCatTiles.innerHTML = ''; return; }
+    apparelCatTiles.innerHTML = presentCats.map(cat => {
+      const items = byCategory[cat];
+      const hero = items[0];
+      const count = items.length;
+      const label = CATEGORY_LABEL[cat] || cat;
+      return `
+        <button type="button" class="apparel-cat-tile${cat === activeApparelCategory ? ' active' : ''}" data-cat="${cat}" aria-label="Browse ${label}" aria-selected="${cat === activeApparelCategory}">
+          <img src="${hero.image_path}" alt="${hero.name}" loading="lazy">
+          <span class="scrim"></span>
+          <span class="tile-label">
+            <span class="name">${label}</span>
+            <span class="num">${count} piece${count === 1 ? '' : 's'}</span>
+          </span>
+        </button>`;
+    }).join('');
+
+    apparelCatTiles.querySelectorAll('.apparel-cat-tile').forEach(tile => {
+      tile.addEventListener('click', () => {
+        const cat = tile.dataset.cat;
+        if (cat === activeApparelCategory) return; // already open, true tab -- no toggle-closed
+        setActiveApparelCategory(cat);
+      });
+    });
+  }
+
   async function loadApparelFromServer(){
     const res = await fetch('/api/apparel');
     const items = res.ok ? await res.json() : [];
     apparelCache = items;
     if (!items.length) {
       apparelGroups.innerHTML = `<p style="color:#666; font-size:13px;">No apparel listed yet.</p>`;
+      if (apparelCatTiles) apparelCatTiles.innerHTML = '';
       return;
     }
     const byCategory = {};
     items.forEach(item => { (byCategory[item.category] = byCategory[item.category] || []).push(item); });
+    const presentCats = CATEGORY_ORDER.filter(cat => byCategory[cat]);
 
-    apparelGroups.innerHTML = CATEGORY_ORDER.filter(cat => byCategory[cat]).map(cat => `
-      <div class="apparel-group">
-        <h3>${CATEGORY_LABEL[cat] || cat}</h3>
+    if (!activeApparelCategory || !presentCats.includes(activeApparelCategory)) {
+      activeApparelCategory = presentCats.length ? presentCats[0] : null;
+    }
+
+    renderApparelCategoryTiles(byCategory, presentCats);
+
+    apparelGroups.innerHTML = presentCats.map(cat => `
+      <div class="apparel-group ${cat === activeApparelCategory ? 'open' : ''}" data-cat="${cat}">
         <div class="grid">${byCategory[cat].map(renderApparelCard).join('')}</div>
       </div>
     `).join('');
@@ -1261,6 +1484,8 @@
   async function checkoutApparel(productId, btn){
     const original = btn.textContent;
     btn.textContent = '...'; btn.disabled = true;
+    const item = apparelCache.find(a => a.id === productId);
+    logAnalyticsEvent('checkout_start', productId, item ? item.name : '');
     const res2 = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1293,6 +1518,7 @@
     const item = apparelCache.find(a => a.id === itemId);
     if (!item) return;
     quickViewItem = item;
+    logAnalyticsEvent('apparel_quickview', item.id, item.name);
     if (cardEl) {
       cardEl.classList.add('pop');
       setTimeout(() => cardEl.classList.remove('pop'), 220);
@@ -1446,6 +1672,7 @@
 
   // ---- Admin auth (real server session via httpOnly cookie) ----
   const musicSection = document.getElementById('music');
+  const shopSection = document.getElementById('shop');
   const adminToggle = document.getElementById('adminToggle');
   const apparelAdminToggle = document.getElementById('apparelAdminToggle');
   const adminToggles = [adminToggle, apparelAdminToggle];
@@ -1454,12 +1681,30 @@
   const loginPass = document.getElementById('loginPass');
   const loginError = document.getElementById('loginError');
 
+  const analyticsLink = document.getElementById('analyticsLink');
+
+  let aiConfigured = false;
+
+  async function refreshAiStatus(){
+    if (!isAdmin) { aiConfigured = false; return; }
+    try {
+      const res = await fetch('/api/apparel/ai-status');
+      const data = res.ok ? await res.json() : { configured: false };
+      aiConfigured = !!data.configured;
+    } catch (e) {
+      aiConfigured = false;
+    }
+  }
+
   function setAdminMode(on){
     isAdmin = on;
+    document.body.classList.toggle('admin-mode', on);
     musicSection.classList.toggle('admin-mode', on);
+    shopSection.classList.toggle('admin-mode', on);
     apparelGroups.classList.toggle('admin-mode', on);
     liveSection.classList.toggle('admin-mode', on);
     uploadAdd.classList.toggle('show', on);
+    analyticsLink.style.display = on ? 'inline-block' : 'none';
     adminToggles.forEach(btn => {
       btn.classList.toggle('active', on);
       btn.textContent = on ? '🔓 LOG OUT' : '🔒 ADMIN LOGIN';
@@ -1468,6 +1713,7 @@
     loadProductsFromServer();
     loadApparelFromServer();
     loadLiveSessionsAdmin();
+    refreshAiStatus();
   }
 
   function openLogin(){
@@ -1526,6 +1772,148 @@
     }
   });
 
+  // ---------------- Video hero ----------------
+  // Shows the real hero loop video (videos/hero-loop.mp4) and hides the
+  // word-mark placeholder art now that a <source> is present.
+  const heroVideoEl = document.getElementById('heroVideo');
+  if (heroVideoEl.querySelector('source')) {
+    heroVideoEl.classList.add('has-source');
+  }
+
+  // ---------------- Scrolling announcement strip ----------------
+  const marqueeText1 = document.getElementById('marqueeText1');
+  const marqueeText2 = document.getElementById('marqueeText2');
+  const marqueeEditBtn = document.getElementById('marqueeEditBtn');
+
+  async function loadMarquee(){
+    const res = await fetch('/api/settings/marquee');
+    const data = res.ok ? await res.json() : { text: '' };
+    const text = data.text || '';
+    marqueeText1.textContent = text;
+    marqueeText2.textContent = text;
+  }
+
+  marqueeEditBtn.addEventListener('click', async () => {
+    if (!isAdmin) return;
+    const newText = prompt('Announcement strip text:', marqueeText1.textContent);
+    if (newText === null || !newText.trim()) return;
+    const res = await fetch('/api/settings/marquee', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: newText.trim() })
+    });
+    if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(data.error || 'Could not update the announcement text.'); return; }
+    await loadMarquee();
+  });
+
+  // ---------------- Admin "Add Item" flow (real photo upload + optional AI suggest) ----------------
+  const addCategory = document.getElementById('addCategory');
+  const addImageFile = document.getElementById('addImageFile');
+  const addImageFileName = document.getElementById('addImageFileName');
+  const addImagePreviewWrap = document.getElementById('addImagePreviewWrap');
+  const addImagePreview = document.getElementById('addImagePreview');
+  const addSuggestBtn = document.getElementById('addSuggestBtn');
+  const addAiNote = document.getElementById('addAiNote');
+  const addName = document.getElementById('addName');
+  const addPrice = document.getElementById('addPrice');
+  const addDescription = document.getElementById('addDescription');
+  const addItemSubmitBtn = document.getElementById('addItemSubmitBtn');
+  const addItemMsg = document.getElementById('addItemMsg');
+
+  addImageFile.addEventListener('change', () => {
+    const file = addImageFile.files[0];
+    addImageFileName.textContent = file ? file.name : 'Choose a product photo…';
+    if (!file) { addImagePreviewWrap.classList.remove('show'); return; }
+    const reader = new FileReader();
+    reader.onload = () => { addImagePreview.src = reader.result; };
+    reader.readAsDataURL(file);
+    addImagePreviewWrap.classList.add('show');
+    if (aiConfigured) {
+      addSuggestBtn.style.display = 'inline-block';
+      addAiNote.style.display = 'none';
+    } else {
+      addSuggestBtn.style.display = 'none';
+      addAiNote.style.display = 'inline';
+      addAiNote.textContent = "AI suggestions aren't configured yet — add ANTHROPIC_API_KEY to backend/.env to enable this. Fill in the name/description manually below.";
+    }
+  });
+
+  addSuggestBtn.addEventListener('click', async () => {
+    const file = addImageFile.files[0];
+    if (!file) return;
+    const original = addSuggestBtn.textContent;
+    addSuggestBtn.textContent = 'Thinking…'; addSuggestBtn.disabled = true;
+    const form = new FormData();
+    form.append('image', file);
+    const res = await fetch('/api/apparel/describe', { method: 'POST', body: form });
+    addSuggestBtn.textContent = original; addSuggestBtn.disabled = false;
+    if (res.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 501 || data.configured === false) {
+      aiConfigured = false;
+      addSuggestBtn.style.display = 'none';
+      addAiNote.style.display = 'inline';
+      addAiNote.textContent = data.error || "AI suggestions aren't configured yet.";
+      return;
+    }
+    if (!res.ok) { alert(data.error || 'Could not get an AI suggestion — fill this in manually.'); return; }
+    if (data.name && !addName.value.trim()) addName.value = data.name;
+    if (data.description && !addDescription.value.trim()) addDescription.value = data.description;
+  });
+
+  addItemSubmitBtn.addEventListener('click', async () => {
+    if (!isAdmin) { alert('Log in as admin to add items.'); return; }
+    const file = addImageFile.files[0];
+    const name = addName.value.trim();
+    const price = addPrice.value.trim();
+    addItemMsg.className = 'apparel-add-msg';
+    if (!file) { addItemMsg.classList.add('error'); addItemMsg.textContent = 'Choose a product photo first.'; return; }
+    if (!name) { addItemMsg.classList.add('error'); addItemMsg.textContent = 'Give the item a name.'; return; }
+    if (!price) { addItemMsg.classList.add('error'); addItemMsg.textContent = 'Enter a price.'; return; }
+
+    const original = addItemSubmitBtn.textContent;
+    addItemSubmitBtn.textContent = 'ADDING…'; addItemSubmitBtn.disabled = true;
+    addItemMsg.textContent = '';
+
+    const imageForm = new FormData();
+    imageForm.append('image', file);
+    const uploadRes = await fetch('/api/apparel/upload-image', { method: 'POST', body: imageForm });
+    if (uploadRes.status === 401) {
+      alert('Your session expired — please log in again.'); setAdminMode(false);
+      addItemSubmitBtn.textContent = original; addItemSubmitBtn.disabled = false;
+      return;
+    }
+    const uploadData = await uploadRes.json().catch(() => ({}));
+    if (!uploadRes.ok) {
+      addItemMsg.classList.add('error'); addItemMsg.textContent = uploadData.error || 'Photo upload failed.';
+      addItemSubmitBtn.textContent = original; addItemSubmitBtn.disabled = false;
+      return;
+    }
+
+    const createRes = await fetch('/api/apparel', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name, category: addCategory.value, price,
+        description: addDescription.value.trim(), image_path: uploadData.image_path,
+      })
+    });
+    addItemSubmitBtn.textContent = original; addItemSubmitBtn.disabled = false;
+    if (createRes.status === 401) { alert('Your session expired — please log in again.'); setAdminMode(false); return; }
+    const createData = await createRes.json().catch(() => ({}));
+    if (!createRes.ok) {
+      addItemMsg.classList.add('error'); addItemMsg.textContent = createData.error || 'Could not add that item.';
+      return;
+    }
+
+    addItemMsg.classList.add('success'); addItemMsg.textContent = 'Added to the catalogue.';
+    addImageFile.value = ''; addImageFileName.textContent = 'Choose a product photo…';
+    addImagePreviewWrap.classList.remove('show'); addImagePreview.src = '';
+    addName.value = ''; addPrice.value = ''; addDescription.value = '';
+    addSuggestBtn.style.display = 'none'; addAiNote.style.display = 'none';
+    activeApparelCategory = addCategory.value;
+    await loadApparelFromServer();
+  });
+
   // ---- Boot sequence ----
   (async function init(){
     await loadTracksFromServer();
@@ -1536,6 +1924,7 @@
       title.textContent = '—'; artist.textContent = '—';
     }
     await loadLiveNow();
+    await loadMarquee();
     const meRes = await fetch('/api/me');
     const me = await meRes.json().catch(() => ({ loggedIn: false }));
     setAdminMode(!!me.loggedIn);
