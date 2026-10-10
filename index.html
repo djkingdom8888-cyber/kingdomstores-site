@@ -150,7 +150,7 @@
     display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
   }
   /* Video-intro hero: a real <video> fills this pane once a loop file exists at
-     videos/hero-loop.mp4; until then .hero-visual-fallback (the original word-mark
+     site-assets/hero-loop.mp4; until then .hero-visual-fallback (the original word-mark
      art) stays visible so there's no broken/empty media placeholder. */
   .hero-video{
     display:none; position:absolute; inset:0; width:100%; height:100%;
@@ -684,10 +684,10 @@
       </div>
     </div>
     <div class="hero-visual" id="heroVisual">
-      <!-- Hero loop video: videos/hero-loop.mp4 (H.264/AAC, 540x960, ~84s, ~51MB,
+      <!-- Hero loop video: site-assets/hero-loop.mp4 (H.264/AAC, 540x960, ~84s, ~51MB,
            compressed/converted from the source .MOV supplied by the site owner). -->
       <video id="heroVideo" class="hero-video" muted loop playsinline autoplay aria-hidden="true">
-        <source src="videos/hero-loop.mp4" type="video/mp4">
+        <source src="site-assets/hero-loop.mp4" type="video/mp4">
       </video>
       <div class="hero-visual-fallback" id="heroVisualFallback">
         <div class="word">KINGDOM<br><span class="red">STORES.</span></div>
@@ -1773,7 +1773,7 @@
   });
 
   // ---------------- Video hero ----------------
-  // Shows the real hero loop video (videos/hero-loop.mp4) and hides the
+  // Shows the real hero loop video (site-assets/hero-loop.mp4) and hides the
   // word-mark placeholder art now that a <source> is present.
   const heroVideoEl = document.getElementById('heroVideo');
   if (heroVideoEl.querySelector('source')) {
