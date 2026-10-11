@@ -157,6 +157,15 @@
     object-fit:cover; z-index:0;
   }
   .hero-video.has-source{display:block;}
+  .hero-video-sound{
+    position:absolute; bottom:18px; right:18px; z-index:2;
+    width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,0.35);
+    background:rgba(10,10,10,0.55); color:var(--white); font-size:16px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:background 0.15s, border-color 0.15s;
+  }
+  .hero-video-sound:hover{background:rgba(10,10,10,0.75); border-color:var(--red);}
+  .hero-video-sound[aria-pressed="true"]{border-color:var(--red); color:var(--red);}
   .hero-visual-fallback{
     position:relative; width:100%; height:100%;
     display:flex; align-items:center; justify-content:center;
@@ -689,6 +698,7 @@
       <video id="heroVideo" class="hero-video" muted loop playsinline autoplay aria-hidden="true">
         <source src="site-assets/hero-loop.mp4" type="video/mp4">
       </video>
+      <button id="heroVideoSound" class="hero-video-sound" type="button" aria-label="Turn on video sound" aria-pressed="false" hidden>&#128263;</button>
       <div class="hero-visual-fallback" id="heroVisualFallback">
         <div class="word">KINGDOM<br><span class="red">STORES.</span></div>
       </div>
@@ -1776,8 +1786,22 @@
   // Shows the real hero loop video (site-assets/hero-loop.mp4) and hides the
   // word-mark placeholder art now that a <source> is present.
   const heroVideoEl = document.getElementById('heroVideo');
+  const heroSoundBtn = document.getElementById('heroVideoSound');
+  const HERO_VIDEO_VOLUME = 0.2; // capped low -- this is a background loop, not the main audio
   if (heroVideoEl.querySelector('source')) {
     heroVideoEl.classList.add('has-source');
+    if (heroSoundBtn) {
+      heroSoundBtn.hidden = false;
+      heroVideoEl.volume = HERO_VIDEO_VOLUME;
+      heroSoundBtn.addEventListener('click', () => {
+        const turningOn = heroVideoEl.muted;
+        heroVideoEl.muted = !turningOn;
+        heroVideoEl.volume = HERO_VIDEO_VOLUME; // re-assert the cap every toggle
+        heroSoundBtn.setAttribute('aria-pressed', String(turningOn));
+        heroSoundBtn.setAttribute('aria-label', turningOn ? 'Mute video sound' : 'Turn on video sound');
+        heroSoundBtn.textContent = turningOn ? '\u{1F50A}' : '\u{1F507}';
+      });
+    }
   }
 
   // ---------------- Scrolling announcement strip ----------------
