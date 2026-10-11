@@ -1787,7 +1787,7 @@
   // word-mark placeholder art now that a <source> is present.
   const heroVideoEl = document.getElementById('heroVideo');
   const heroSoundBtn = document.getElementById('heroVideoSound');
-  const HERO_VIDEO_VOLUME = 0.2; // capped low -- this is a background loop, not the main audio
+  const HERO_VIDEO_VOLUME = 0.01; // capped very low -- this is a background loop, not the main audio
   if (heroVideoEl.querySelector('source')) {
     heroVideoEl.classList.add('has-source');
     if (heroSoundBtn) {
