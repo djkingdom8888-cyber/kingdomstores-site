@@ -1792,14 +1792,33 @@
     heroVideoEl.classList.add('has-source');
     if (heroSoundBtn) {
       heroSoundBtn.hidden = false;
-      heroVideoEl.volume = HERO_VIDEO_VOLUME;
+      // iOS Safari ignores HTMLMediaElement.volume entirely -- it always reads back
+      // 1, and real loudness only ever follows the phone's hardware volume buttons
+      // (confirmed Apple behavior, not a bug). Routing through a Web Audio GainNode
+      // is the one way to actually cap loudness on iOS, and it works identically on
+      // every other browser too, so it replaces .volume as the single source of truth.
+      let heroGainNode = null; // created lazily -- iOS requires a user gesture to start an AudioContext
+      let heroSoundOn = false;
+      function ensureHeroAudioGraph() {
+        if (heroGainNode) return heroGainNode;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        ctx.resume().catch(() => {});
+        const source = ctx.createMediaElementSource(heroVideoEl);
+        const gain = ctx.createGain();
+        gain.gain.value = 0;
+        source.connect(gain).connect(ctx.destination);
+        heroGainNode = gain;
+        return gain;
+      }
       heroSoundBtn.addEventListener('click', () => {
-        const turningOn = heroVideoEl.muted;
-        heroVideoEl.muted = !turningOn;
-        heroVideoEl.volume = HERO_VIDEO_VOLUME; // re-assert the cap every toggle
-        heroSoundBtn.setAttribute('aria-pressed', String(turningOn));
-        heroSoundBtn.setAttribute('aria-label', turningOn ? 'Mute video sound' : 'Turn on video sound');
-        heroSoundBtn.textContent = turningOn ? '\u{1F50A}' : '\u{1F507}';
+        const gain = ensureHeroAudioGraph();
+        heroSoundOn = !heroSoundOn;
+        heroVideoEl.muted = false; // the gain node, not this flag, now controls actual loudness
+        gain.gain.value = heroSoundOn ? HERO_VIDEO_VOLUME : 0;
+        heroSoundBtn.setAttribute('aria-pressed', String(heroSoundOn));
+        heroSoundBtn.setAttribute('aria-label', heroSoundOn ? 'Mute video sound' : 'Turn on video sound');
+        heroSoundBtn.textContent = heroSoundOn ? '\u{1F50A}' : '\u{1F507}';
       });
     }
   }
