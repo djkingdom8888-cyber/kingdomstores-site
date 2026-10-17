@@ -53,6 +53,53 @@ VIDEOS_DIR = DATA_DIR / "videos"
 VIDEOS_DIR.mkdir(exist_ok=True)
 ALLOWED_VIDEO_EXTENSIONS = {"mp4", "mov", "m4v", "webm"}
 
+APPAREL_DIR = SITE_DIR / "images" / "apparel"
+APPAREL_DIR.mkdir(parents=True, exist_ok=True)
+ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif"}
+MAX_IMAGE_BYTES = 40 * 1024 * 1024  # raised from 8MB -- product photos from modern phone
+                                     # cameras/DSLRs routinely exceed that; still well under
+                                     # the global 300MB request cap (MAX_CONTENT_LENGTH above).
+_EXT_TO_KIND = {"jpg": "jpeg", "jpeg": "jpeg", "png": "png", "webp": "webp", "gif": "gif"}
+_KIND_TO_MEDIA_TYPE = {
+    "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp", "gif": "image/gif",
+}
+
+
+def _sniff_image_kind(header):
+    """Cheap magic-byte check -- the actual defense against a renamed non-image file,
+    since a client-supplied extension/Content-Type can't be trusted on its own."""
+    if header[:3] == b"\xff\xd8\xff":
+        return "jpeg"
+    if header[:8] == b"\x89PNG\r\n\x1a\n":
+        return "png"
+    if header[:6] in (b"GIF87a", b"GIF89a"):
+        return "gif"
+    if header[:4] == b"RIFF" and header[8:12] == b"WEBP":
+        return "webp"
+    return None
+
+
+def _read_and_validate_image(file):
+    """Validates an uploaded image (extension + size + magic-byte sniff).
+    Returns (bytes, media_type, None) on success, or (None, None, (response, status)) on failure."""
+    if not file or not file.filename:
+        return None, None, (jsonify({"error": "No image file uploaded."}), 400)
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        return None, None, (jsonify({
+            "error": f"Unsupported file type .{ext}. Allowed: {', '.join(sorted(ALLOWED_IMAGE_EXTENSIONS))}"
+        }), 400)
+    data = file.read()
+    if len(data) > MAX_IMAGE_BYTES:
+        return None, None, (jsonify({
+            "error": f"That image is too large ({MAX_IMAGE_BYTES // (1024*1024)}MB limit)."
+        }), 413)
+    kind = _sniff_image_kind(data[:16])
+    if not kind or kind != _EXT_TO_KIND.get(ext):
+        return None, None, (jsonify({"error": "That file doesn't look like a valid image."}), 400)
+    return data, _KIND_TO_MEDIA_TYPE[kind], None
+
+
 # Live streaming: pure signaling relay over Socket.IO (chat + WebRTC SDP/ICE).
 # async_mode="gevent" is required to run correctly under gunicorn with a
 # GeventWebSocketWorker: leaving this as "threading" while running gunicorn
@@ -938,6 +985,35 @@ def add_apparel():
     conn.commit()
     conn.close()
     return jsonify({"ok": True, "id": new_id})
+
+
+@app.post("/api/apparel/upload-image")
+@login_required
+def upload_apparel_image():
+    """Uploads a real product photo for a new apparel listing and returns the
+    relative path to hand to POST /api/apparel as image_path. Mirrors the
+    validation shape of /api/tracks/upload (extension check + size cap), plus a
+    magic-byte sniff since this accepts images rather than admin-only video files."""
+    file = request.files.get("image")
+    data, _media_type, err = _read_and_validate_image(file)
+    if err:
+        response, status = err
+        return response, status
+
+    ext = file.filename.rsplit(".", 1)[-1].lower()
+    base_name = secure_filename(file.filename.rsplit(".", 1)[0]) or "apparel"
+    filename = f"{base_name}-{secrets.token_hex(4)}.{ext}"
+    dest = APPAREL_DIR / filename
+    try:
+        dest.write_bytes(data)
+    except OSError:
+        dest.unlink(missing_ok=True)
+        return jsonify({
+            "error": "Upload failed: the server ran out of storage space. "
+                     "An admin needs to free up disk space or increase the disk size."
+        }), 507
+
+    return jsonify({"ok": True, "image_path": f"images/apparel/{filename}"})
 
 
 @app.patch("/api/apparel/<item_id>")
